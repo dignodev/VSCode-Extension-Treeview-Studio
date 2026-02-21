@@ -77,10 +77,11 @@ function activate(context) {
                 return;
             // Obtener profundidad máxima
             const maxDepth = await getMaxDepth();
-            // Generar el árbol
+            // Generar el árbol (por defecto con iconos)
             const treeData = await generateDirectoryTree(rootPath, {
                 includeHidden: includeHidden === 'Sí',
-                maxDepth: maxDepth
+                maxDepth: maxDepth,
+                showIcons: true // Por defecto mostrar iconos
             });
             // Crear y mostrar el panel WebView
             const panel = vscode.window.createWebviewPanel('treeGenerator', `Árbol: ${path.basename(rootPath)}`, vscode.ViewColumn.One, {
@@ -88,24 +89,27 @@ function activate(context) {
                 retainContextWhenHidden: true
             });
             // Enviar los datos al WebView
-            panel.webview.html = getWebviewContent(rootPath, treeData, includeHidden === 'Sí');
+            panel.webview.html = getWebviewContent(rootPath, treeData, includeHidden === 'Sí', true);
             // Manejar mensajes del WebView
             panel.webview.onDidReceiveMessage(async (message) => {
                 switch (message.command) {
                     case 'refresh':
                         const newIncludeHidden = message.includeHidden === 'true';
                         const newMaxDepth = message.maxDepth ? parseInt(message.maxDepth) : undefined;
+                        const newShowIcons = message.showIcons === 'true';
                         // Limpiar la ruta
                         const cleanRootPath = message.rootPath.replace(/\t/g, '').trim();
                         vscode.window.showInformationMessage(`Regenerando árbol...`);
                         const newTreeData = await generateDirectoryTree(cleanRootPath, {
                             includeHidden: newIncludeHidden,
-                            maxDepth: newMaxDepth
+                            maxDepth: newMaxDepth,
+                            showIcons: newShowIcons
                         });
                         panel.webview.postMessage({
                             command: 'updateTree',
                             treeData: newTreeData,
-                            includeHidden: newIncludeHidden
+                            includeHidden: newIncludeHidden,
+                            showIcons: newShowIcons
                         });
                         break;
                     case 'copy':
@@ -160,7 +164,8 @@ async function getMaxDepth() {
 // Función para generar el árbol visual con formato adecuado
 function generateVisualTree(rootPath, options) {
     const rootName = path.basename(rootPath);
-    let treeOutput = `📁 ${rootName}/\n`;
+    const rootIcon = options.showIcons ? '📁 ' : '';
+    let treeOutput = `${rootIcon}${rootName}/\n`;
     function processDirectory(dirPath, prefix = '', depth = 0) {
         if (options.maxDepth && depth >= options.maxDepth) {
             return '';
@@ -209,13 +214,14 @@ function generateVisualTree(rootPath, options) {
                 const isLast = i === itemsWithStats.length - 1;
                 const connector = isLast ? '└── ' : '├── ';
                 if (item.isDirectory) {
-                    dirOutput += `${prefix}${connector}📁 ${item.name}/\n`;
+                    const dirIcon = options.showIcons ? '📁 ' : '';
+                    dirOutput += `${prefix}${connector}${dirIcon}${item.name}/\n`;
                     const newPrefix = prefix + (isLast ? '    ' : '│   ');
                     dirOutput += processDirectory(item.path, newPrefix, depth + 1);
                 }
                 else {
-                    const icon = getFileIcon(item.name);
-                    dirOutput += `${prefix}${connector}${icon} ${item.name}\n`;
+                    const icon = options.showIcons ? getFileIcon(item.name) + ' ' : '';
+                    dirOutput += `${prefix}${connector}${icon}${item.name}\n`;
                 }
             }
         }
@@ -320,7 +326,7 @@ function getFileIcon(fileName) {
         return '⚙️';
     return iconMap[ext] || '📄';
 }
-function getWebviewContent(rootPath, treeData, includeHidden) {
+function getWebviewContent(rootPath, treeData, includeHidden, showIcons) {
     const escapedRootPath = rootPath.replace(/\\/g, '\\\\');
     return `<!DOCTYPE html>
 <html lang="es">
@@ -373,6 +379,12 @@ function getWebviewContent(rootPath, treeData, includeHidden) {
         .controls button:hover {
             background-color: var(--vscode-button-hoverBackground);
         }
+
+        .controls button.active {
+            background-color: var(--vscode-button-secondaryBackground);
+            color: var(--vscode-button-secondaryForeground);
+            outline: 2px solid var(--vscode-focusBorder);
+        }
         
         .options-panel {
             background-color: var(--vscode-editor-inactiveSelectionBackground);
@@ -404,6 +416,7 @@ function getWebviewContent(rootPath, treeData, includeHidden) {
             margin: 0;
             width: 16px;
             height: 16px;
+            cursor: pointer;
         }
         
         .option-group input[type="number"] {
@@ -501,9 +514,12 @@ function getWebviewContent(rootPath, treeData, includeHidden) {
         <div class="header">
             <div class="title">Árbol de Directorios: ${path.basename(rootPath)}</div>
             <div class="controls">
-                <button onclick="toggleOptions()">Opciones</button>
-                <button onclick="copyToClipboard()">Copiar</button>
-                <button onclick="exportToFile()">Exportar</button>
+                <button onclick="toggleOptions()" title="Mostrar/ocultar opciones">⚙️</button>
+                <button onclick="toggleIcons()" id="toggleIconsBtn" class="${showIcons ? 'active' : ''}" title="${showIcons ? 'Ocultar iconos' : 'Mostrar iconos'}">
+                    ${showIcons ? '🔷 Ocultar iconos' : '📄 Mostrar iconos'}
+                </button>
+                <button onclick="copyToClipboard()" title="Copiar al portapapeles">📋 Copiar</button>
+                <button onclick="exportToFile()" title="Exportar a archivo">💾 Exportar</button>
             </div>
         </div>
         
@@ -538,6 +554,9 @@ function getWebviewContent(rootPath, treeData, includeHidden) {
                 Archivos ocultos: ${includeHidden ? 'Incluidos' : 'Excluidos'}
             </div>
             <div style="margin-top: 5px;">
+                Iconos: ${showIcons ? 'Mostrando' : 'Ocultos'}
+            </div>
+            <div style="margin-top: 5px;">
                 Líneas: ${(treeData.text.match(/\n/g) || []).length}
             </div>
         </div>
@@ -552,9 +571,21 @@ function getWebviewContent(rootPath, treeData, includeHidden) {
         const vscode = acquireVsCodeApi();
         let currentTreeData = ${JSON.stringify(treeData)};
         let currentRootPath = "${escapedRootPath}";
+        let currentShowIcons = ${showIcons};
         
         function toggleOptions() {
             document.getElementById('optionsPanel').classList.toggle('visible');
+        }
+        
+        function toggleIcons() {
+            currentShowIcons = !currentShowIcons;
+            const btn = document.getElementById('toggleIconsBtn');
+            btn.className = currentShowIcons ? 'active' : '';
+            btn.title = currentShowIcons ? 'Ocultar iconos' : 'Mostrar iconos';
+            btn.innerHTML = currentShowIcons ? '🔷 Ocultar iconos' : '📄 Mostrar iconos';
+            
+            // Aplicar el cambio
+            applyOptions();
         }
         
         function copyToClipboard() {
@@ -591,7 +622,8 @@ function getWebviewContent(rootPath, treeData, includeHidden) {
                 command: 'refresh',
                 rootPath: currentRootPath,
                 includeHidden: includeHidden,
-                maxDepth: maxDepth || undefined
+                maxDepth: maxDepth || undefined,
+                showIcons: currentShowIcons
             });
         }
         
@@ -599,8 +631,25 @@ function getWebviewContent(rootPath, treeData, includeHidden) {
             const message = event.data;
             if (message.command === 'updateTree') {
                 currentTreeData = message.treeData;
+                currentShowIcons = message.showIcons;
                 document.getElementById('treeContainer').innerHTML = message.treeData.html;
                 document.getElementById('includeHidden').checked = message.includeHidden;
+                
+                // Actualizar el botón de iconos
+                const btn = document.getElementById('toggleIconsBtn');
+                btn.className = currentShowIcons ? 'active' : '';
+                btn.title = currentShowIcons ? 'Ocultar iconos' : 'Mostrar iconos';
+                btn.innerHTML = currentShowIcons ? '🔷 Ocultar iconos' : '📄 Mostrar iconos';
+                
+                // Actualizar estadísticas
+                const statsDiv = document.querySelector('.stats');
+                if (statsDiv) {
+                    const iconStatus = statsDiv.children[2];
+                    if (iconStatus) {
+                        iconStatus.innerHTML = \`Iconos: \${currentShowIcons ? 'Mostrando' : 'Ocultos'}\`;
+                    }
+                }
+                
                 showLoading(false);
             }
         });

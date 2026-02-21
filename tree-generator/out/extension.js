@@ -533,12 +533,12 @@ function getWebviewContent(rootPath, treeData, includeHidden) {
         </div>
         
         <div class="stats">
-            <div>📁 Ruta: ${rootPath}</div>
+            <div>Ruta: ${rootPath}</div>
             <div style="margin-top: 5px;">
-                👁️ Archivos ocultos: ${includeHidden ? 'Incluidos' : 'Excluidos'}
+                Archivos ocultos: ${includeHidden ? 'Incluidos' : 'Excluidos'}
             </div>
             <div style="margin-top: 5px;">
-                📊 Líneas: ${(treeData.text.match(/\n/g) || []).length}
+                Líneas: ${(treeData.text.match(/\n/g) || []).length}
             </div>
         </div>
         

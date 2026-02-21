@@ -2,7 +2,7 @@
 
 English  | [日本語](./README.jp.md) | [Spanish](./README.es.md)
 
-[![VS Code](https://img.shields.io/badge/VS%20Code-%235586A4?style=flat&logo=visual-studio-code)](https://code.visualstudio.com/) [![Version](https://img.shields.io/badge/Version-0.0.1-blue)](https://marketplace.visualstudio.com/) [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE) [![Node.js](https://img.shields.io/badge/Node.js-%23339933?style=flat&logo=node.js)](https://nodejs.org/)
+[![VS Code](https://img.shields.io/badge/VS%20Code-%235586A4?style=flat&logo=visual-studio-code)](https://code.visualstudio.com/) [![Version](https://img.shields.io/badge/Version-0.1.0-blue)](https://marketplace.visualstudio.com/) [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE) [![Node.js](https://img.shields.io/badge/Node.js-%23339933?style=flat&logo=node.js)](https://nodejs.org/)
 
 
 A Visual Studio Code extension that generates a directory tree visualization of your project. Perfect for documentation, sharing project structure, or understanding codebase organization.
@@ -15,6 +15,7 @@ A Visual Studio Code extension that generates a directory tree visualization of 
 - **Context Menu Integration**: Right-click on any folder in the Explorer to generate its tree
 - **Workspace Support**: Works with the entire workspace if no folder is selected
 - **Visual Tree Format**: Uses standard tree notation (`├──`, `└──`, `│`) for clear visualization
+- **Support the Developer**: Option to donate and support the project development
 
 
 ## Características 
@@ -98,13 +99,13 @@ To create and install the extension package:
    - Go to Extensions (`Ctrl+Shift+X` or `Cmd+Shift+X` on Mac)
    - Click the `...` menu in the top right
    - Select "Install from VSIX..."
-   - Navigate to `tree-generator/tree-generator-0.0.1.vsix`
+   - Navigate to `tree-generator/tree-generator-0.1.0.vsix`
 
 ### Alternative Installation
 
 You can also install directly from the command line:
 ```bash
-code --install-extension tree-generator/tree-generator-0.0.1.vsx
+code --install-extension tree-generator/tree-generator-0.1.0.vsix
 ```
 
 ## Usage

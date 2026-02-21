@@ -2,7 +2,7 @@
 
 [English](./README.md)  | 日本語 | [Spanish](./README.es.md)
 
-[![VS Code](https://img.shields.io/badge/VS%20Code-%235586A4?style=flat&logo=visual-studio-code)](https://code.visualstudio.com/) [![Version](https://img.shields.io/badge/Version-0.0.1-blue)](https://marketplace.visualstudio.com/) [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE) [![Node.js](https://img.shields.io/badge/Node.js-%23339933?style=flat&logo=node.js)](https://nodejs.org/)
+[![VS Code](https://img.shields.io/badge/VS%20Code-%235586A4?style=flat&logo=visual-studio-code)](https://code.visualstudio.com/) [![Version](https://img.shields.io/badge/Version-0.1.0-blue)](https://marketplace.visualstudio.com/) [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE) [![Node.js](https://img.shields.io/badge/Node.js-%23339933?style=flat&logo=node.js)](https://nodejs.org/)
 
 Visual Studio Codeの拡張機能で、プロジェクト全体のディレクトリツリー構造を生成します。ドキュメント作成、プロジェクト構造の共有、コードベースの理解に最適です。
 
@@ -14,6 +14,7 @@ Visual Studio Codeの拡張機能で、プロジェクト全体のディレク�
 - **コンテキストメニュー統合**: エクスプローラーで任意のフォルダを右クリックしてツリーを生成
 - **ワークスペースサポート**: フォルダが選択されていない場合はワークスペース全体で動作
 - **視覚的なツリー形式**: 明確な表示に標準的なツリー記法（`├──`、`└──`、`│`）を使用
+- **開発者をサポート**: プロジェクトの開発を支援するために寄付できるオプション
 
 ## インストール
 
@@ -55,13 +56,13 @@ Visual Studio Codeの拡張機能で、プロジェクト全体のディレク�
    - 拡張機能に移動（`Ctrl+Shift+X`またはMacでは`Cmd+Shift+X`）
    - 右上の`...`メニューをクリック
    - "VSIXからインストール..."を選択
-   - `tree-generator/tree-generator-0.0.1.vsix`に移動
+   - `tree-generator/tree-generator-0.1.0.vsix`に移動
 
 ### 代替インストール
 
 コマンドラインから直接インストールできます:
 ```bash
-code --install-extension tree-generator/tree-generator-0.0.1.vsx
+code --install-extension tree-generator/tree-generator-0.1.0.vsix
 ```
 
 ## 使用方法

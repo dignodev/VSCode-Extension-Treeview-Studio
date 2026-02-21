@@ -2,7 +2,7 @@
 
 [English](./README.md)  | [日本語](./README.jp.md) | Spanish
 
-[![VS Code](https://img.shields.io/badge/VS%20Code-%235586A4?style=flat&logo=visual-studio-code)](https://code.visualstudio.com/) [![Versión](https://img.shields.io/badge/Versión-0.0.1-blue)](https://marketplace.visualstudio.com/) [![Licencia](https://img.shields.io/badge/Licencia-MIT-green)](LICENSE) [![Node.js](https://img.shields.io/badge/Node.js-%23339933?style=flat&logo=node.js)](https://nodejs.org/)
+[![VS Code](https://img.shields.io/badge/VS%20Code-%235586A4?style=flat&logo=visual-studio-code)](https://code.visualstudio.com/) [![Versión](https://img.shields.io/badge/Versión-0.1.0-blue)](https://marketplace.visualstudio.com/) [![Licencia](https://img.shields.io/badge/Licencia-MIT-green)](LICENSE) [![Node.js](https://img.shields.io/badge/Node.js-%23339933?style=flat&logo=node.js)](https://nodejs.org/)
 
 Una extensión de Visual Studio Code que genera una visualización de árbol de directorios de tu proyecto. Perfecta para documentación, compartir la estructura del proyecto o entender la organización del código base.
 
@@ -14,6 +14,7 @@ Una extensión de Visual Studio Code que genera una visualización de árbol de 
 - **Integración con Menú Contextual**: Haz clic derecho en cualquier carpeta del Explorador para generar su árbol
 - **Soporte de Workspace**: Funciona con todo el workspace si no se selecciona ninguna carpeta
 - **Formato de Árbol Visual**: Usa notación estándar de árbol (`├──`, `└──`, `│`) para una visualización clara
+- **Apoya al Desarrollador**: Opción para donate y apoyar el desarrollo del proyecto
 
 ## Instalación
 
@@ -55,13 +56,13 @@ Para crear e instalar el paquete de la extensión:
    - Ve a Extensiones (`Ctrl+Shift+X` o `Cmd+Shift+X` en Mac)
    - Haz clic en el menú `...` en la esquina superior derecha
    - Selecciona "Instalar desde VSIX..."
-   - Navega a `tree-generator/tree-generator-0.0.1.vsix`
+   - Navega a `tree-generator/tree-generator-0.1.0.vsix`
 
 ### Instalación Alternativa
 
 También puedes instalar directamente desde la línea de comandos:
 ```bash
-code --install-extension tree-generator/tree-generator-0.0.1.vsx
+code --install-extension tree-generator/tree-generator-0.1.0.vsix
 ```
 
 ## Uso

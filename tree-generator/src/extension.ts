@@ -203,7 +203,7 @@ async function processDirectory(
 ): Promise<{ text: string, html: string }> {
     const prefix = isLast ? '└── ' : '├── ';
     let textResult = `${prefix}${dirName}/\n`;
-    let htmlResult = `<div class="tree-folder"><span class="folder-icon">📁</span> ${dirName}/</div><div class="tree-children">`;
+    let htmlResult = `<div class="tree-folder"><span class="codicon $(folder)"></span> ${dirName}/</div><div class="tree-children">`;
     
     if (options.maxDepth && depth >= options.maxDepth) {
         htmlResult += '</div>';
@@ -266,31 +266,201 @@ function processFile(fileName: string, isLast: boolean): string {
 
 // Procesar un archivo (HTML)
 function processFileHtml(fileName: string, isLast: boolean, isError: boolean = false, hasParent: boolean = false): string {
-    const icon = getFileIcon(fileName);
+    const iconClass = getFileIconClass(fileName);
     const errorClass = isError ? ' error' : '';
-    return `<div class="tree-file${errorClass}"><span class="file-icon">${icon}</span> ${fileName}</div>`;
+    return `<div class="tree-file${errorClass}"><span class="codicon ${iconClass}"></span> ${fileName}</div>`;
 }
 
-// Obtener icono según extensión
+// Obtener clase de icono según extensión
+function getFileIconClass(fileName: string): string {
+    const ext = path.extname(fileName).toLowerCase();
+    const baseName = path.basename(fileName).toLowerCase();
+    
+    // Map of file extensions to VS Code icon classes
+    const iconMap: { [key: string]: string } = {
+        // TypeScript/JavaScript
+        '.ts': 'ts-file',
+        '.tsx': 'ts-file',
+        '.js': 'js-file',
+        '.jsx': 'js-file',
+        '.mjs': 'js-file',
+        '.cjs': 'js-file',
+        
+        // Web
+        '.html': 'html-file',
+        '.htm': 'html-file',
+        '.css': 'css-file',
+        '.scss': 'css-file',
+        '.sass': 'css-file',
+        '.less': 'css-file',
+        
+        // Data/Config
+        '.json': 'json-file',
+        '.xml': 'xml-file',
+        '.yaml': 'yaml-file',
+        '.yml': 'yaml-file',
+        
+        // Documents
+        '.md': 'md-file',
+        '.txt': 'txt-file',
+        '.pdf': 'pdf-file',
+        
+        // Images
+        '.png': 'img-file',
+        '.jpg': 'img-file',
+        '.jpeg': 'img-file',
+        '.gif': 'img-file',
+        '.svg': 'img-file',
+        '.ico': 'img-file',
+        '.webp': 'img-file',
+        
+        // Code files
+        '.py': 'py-file',
+        '.java': 'java-file',
+        '.c': 'c-file',
+        '.cpp': 'cpp-file',
+        '.h': 'h-file',
+        '.hpp': 'hpp-file',
+        '.cs': 'cs-file',
+        '.go': 'go-file',
+        '.rs': 'rs-file',
+        '.rb': 'rb-file',
+        '.php': 'php-file',
+        '.swift': 'swift-file',
+        '.kt': 'kt-file',
+        '.scala': 'scala-file',
+        
+        // Package/Build files
+        '.lock': 'lock-file',
+        '.vsix': 'vsix-file',
+        '.npm': 'npm-file',
+        
+        // Docker/Config
+        'dockerfile': 'dockerfile-file',
+        '.dockerfile': 'dockerfile-file',
+        'makefile': 'makefile-file',
+        '.env': 'env-file',
+        '.gitignore': 'gitignore-file',
+        
+        // Database
+        '.sql': 'sql-file',
+        '.db': 'db-file',
+        '.sqlite': 'sqlite-file',
+        
+        // Other
+        '.zip': 'zip-file',
+        '.tar': 'zip-file',
+        '.gz': 'zip-file',
+        '.log': 'log-file',
+        '.sh': 'sh-file',
+        '.bat': 'bat-file',
+        '.ps1': 'ps1-file'
+    };
+    
+    // Check for exact filename matches
+    if (baseName === 'dockerfile') return 'dockerfile-file';
+    if (baseName === 'makefile') return 'makefile-file';
+    if (baseName === '.gitignore') return 'gitignore-file';
+    if (baseName === '.env') return 'env-file';
+    
+    return iconMap[ext] || 'file-icon';
+}
+
+// Obtener icono según extensión usando iconos de VS Code
 function getFileIcon(fileName: string): string {
     const ext = path.extname(fileName).toLowerCase();
+    const baseName = path.basename(fileName).toLowerCase();
+    
+    // Map of file extensions to VS Code codicon class names
     const iconMap: { [key: string]: string } = {
-        '.ts': '🔷',
-        '.js': '🟨',
-        '.json': '📋',
-        '.html': '🌐',
-        '.css': '🎨',
-        '.md': '📝',
-        '.txt': '📄',
-        '.gitignore': '🔒',
-        '.vsix': '📦',
-        '.png': '🖼️',
-        '.jpg': '🖼️',
-        '.jpeg': '🖼️',
-        '.svg': '🖼️',
-        '.ico': '🖼️'
+        // TypeScript/JavaScript
+        '.ts': '$(symbol-type) ts-file',
+        '.tsx': '$(symbol-type) ts-file',
+        '.js': '$(symbol-numeric) js-file',
+        '.jsx': '$(symbol-numeric) js-file',
+        '.mjs': '$(symbol-numeric) js-file',
+        '.cjs': '$(symbol-numeric) js-file',
+        
+        // Web
+        '.html': '$(code) html-file',
+        '.htm': '$(code) html-file',
+        '.css': '$(symbol-property) css-file',
+        '.scss': '$(symbol-property) css-file',
+        '.sass': '$(symbol-property) css-file',
+        '.less': '$(symbol-property) css-file',
+        
+        // Data/Config
+        '.json': '$(json) json-file',
+        '.xml': '$(xml) xml-file',
+        '.yaml': '$(yaml) yaml-file',
+        '.yml': '$(yaml) yaml-file',
+        
+        // Documents
+        '.md': '$(markdown) md-file',
+        '.txt': '$(file-text) txt-file',
+        '.pdf': '$(pdf) pdf-file',
+        '.doc': '$(word) doc-file',
+        '.docx': '$(word) doc-file',
+        
+        // Images
+        '.png': '$(image) img-file',
+        '.jpg': '$(image) img-file',
+        '.jpeg': '$(image) img-file',
+        '.gif': '$(image) img-file',
+        '.svg': '$(image) img-file',
+        '.ico': '$(image) img-file',
+        '.webp': '$(image) img-file',
+        
+        // Code files
+        '.py': '$(python) py-file',
+        '.java': '$(java) java-file',
+        '.c': '$(c) c-file',
+        '.cpp': '$(cpp) cpp-file',
+        '.h': '$(header) h-file',
+        '.hpp': '$(header) hpp-file',
+        '.cs': '$(csharp) cs-file',
+        '.go': '$(go) go-file',
+        '.rs': '$(rust) rs-file',
+        '.rb': '$(ruby) rb-file',
+        '.php': '$(php) php-file',
+        '.swift': '$(swift) swift-file',
+        '.kt': '$(kotlin) kt-file',
+        '.scala': '$(scala) scala-file',
+        
+        // Package/Build files
+        '.lock': '$(lock) lock-file',
+        '.vsix': '$(package) vsix-file',
+        '.npm': '$(npm) npm-file',
+        
+        // Docker/Config
+        'dockerfile': '$(docker) dockerfile-file',
+        '.dockerfile': '$(docker) dockerfile-file',
+        'makefile': '$(file-code) makefile-file',
+        '.env': '$(settings) env-file',
+        '.gitignore': '$(git) gitignore-file',
+        
+        // Database
+        '.sql': '$(database) sql-file',
+        '.db': '$(database) db-file',
+        '.sqlite': '$(database) sqlite-file',
+        
+        // Other
+        '.zip': '$(zip) zip-file',
+        '.tar': '$(zip) tar-file',
+        '.gz': '$(zip) gz-file',
+        '.log': '$(file-text) log-file',
+        '.sh': '$(terminal) sh-file',
+        '.bat': '$(terminal) bat-file',
+        '.ps1': '$(terminal) ps1-file'
     };
-    return iconMap[ext] || '📄';
+    
+    // Check for exact filename matches first
+    if (baseName === 'dockerfile') return '$(docker) dockerfile-file';
+    if (baseName === 'makefile') return '$(file-code) makefile-file';
+    if (baseName === '.gitignore') return '$(git) gitignore-file';
+    if (baseName === '.env') return '$(settings) env-file';
+    
+    return iconMap[ext] || '$(file) file-icon';
 }
 
 // Generar el contenido HTML del WebView
@@ -302,6 +472,12 @@ function getWebviewContent(webview: vscode.Webview, extensionPath: string, rootP
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Tree Generator</title>
         <style>
+            /* VS Code Codicons font */
+            @font-face {
+                font-family: 'codicon';
+                src: url('https://microsoft.github.io/vscode-codicons/dist/codicon.ttf') format('truetype');
+            }
+            
             body {
                 font-family: var(--vscode-font-family);
                 background-color: var(--vscode-editor-background);
@@ -376,7 +552,7 @@ function getWebviewContent(webview: vscode.Webview, extensionPath: string, rootP
             
             .tree-container {
                 font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-                line-height: 1.5;
+                line-height: 1.8;
                 white-space: pre;
             }
             
@@ -392,26 +568,105 @@ function getWebviewContent(webview: vscode.Webview, extensionPath: string, rootP
             .tree-folder {
                 color: var(--vscode-symbolIcon-folderForeground);
                 margin-top: 2px;
+                display: flex;
+                align-items: center;
             }
             
             .tree-file {
                 margin-left: 0;
                 margin-top: 2px;
+                display: flex;
+                align-items: center;
             }
             
             .tree-file.error {
                 color: var(--vscode-errorForeground);
             }
             
-            .folder-icon, .file-icon {
-                margin-right: 5px;
+            /* VS Code Codicon styling */
+            .codicon {
+                font-family: 'codicon', sans-serif;
+                font-size: 14px;
+                line-height: 1;
                 display: inline-block;
-                width: 20px;
+                margin-right: 6px;
+                vertical-align: middle;
+                font-weight: normal;
+                font-style: normal;
+                text-align: center;
+                width: 16px;
             }
+            
+            /* File type specific icons */
+            .ts-file { color: #3178c6; }
+            .js-file { color: #f7df1e; }
+            .html-file { color: #e34c26; }
+            .css-file { color: #563d7c; }
+            .json-file { color: #cbcb41; }
+            .md-file { color: #083fa1; }
+            .img-file { color: #a1e44d; }
+            .py-file { color: #3776ab; }
+            .java-file { color: #b07219; }
+            .c-file, .cpp-file { color: #555555; }
+            .cs-file { color: #68217a; }
+            .go-file { color: #00add8; }
+            .rs-file { color: #dea584; }
+            .rb-file { color: #cc342d; }
+            .php-file { color: #4f5d95; }
+            .swift-file { color: #fa7343; }
+            .kt-file { color: #a97bff; }
+            .sql-file { color: #e38c00; }
+            .gitignore-file { color: #f14e32; }
+            .vsix-file { color: #0066bf; }
+            .zip-file { color: #b3b3b3; }
+            .dockerfile-file { color: #2496ed; }
+            .env-file { color: #ecd53f; }
+            .lock-file { color: #808080; }
+            .file-icon { color: #808080; }
+            .folder-icon { color: var(--vscode-symbolIcon-folderForeground); }
+            
+            /* Codicon folder icons */
+            .codicon.\$folder::before { content: '📁'; font-size: 14px; }
+            .codicon.\$folder-open::before { content: '📂'; font-size: 14px; }
+            .codicon.\$file::before { content: '📄'; font-size: 14px; }
+            .codicon.\$symbol-type::before { content: '🔷'; font-size: 14px; }
+            .codicon.\$symbol-numeric::before { content: '🟨'; font-size: 14px; }
+            .codicon.\$code::before { content: '🌐'; font-size: 14px; }
+            .codicon.\$symbol-property::before { content: '🎨'; font-size: 14px; }
+            .codicon.\$json::before { content: '📋'; font-size: 14px; }
+            .codicon.\$markdown::before { content: '📝'; font-size: 14px; }
+            .codicon.\$image::before { content: '🖼️'; font-size: 14px; }
+            .codicon.\$python::before { content: '🐍'; font-size: 14px; }
+            .codicon.\$java::before { content: '☕'; font-size: 14px; }
+            .codicon.\$c::before { content: '📘'; font-size: 14px; }
+            .codicon.\$cpp::before { content: '📗'; font-size: 14px; }
+            .codicon.\$csharp::before { content: '🎯'; font-size: 14px; }
+            .codicon.\$go::before { content: '🐹'; font-size: 14px; }
+            .codicon.\$rust::before { content: '🦀'; font-size: 14px; }
+            .codicon.\$ruby::before { content: '💎'; font-size: 14px; }
+            .codicon.\$php::before { content: '🐘'; font-size: 14px; }
+            .codicon.\$swift::before { content: '🐦'; font-size: 14px; }
+            .codicon.\$kotlin::before { content: '🟣'; font-size: 14px; }
+            .codicon.\$database::before { content: '🗄️'; font-size: 14px; }
+            .codicon.\$git::before { content: '🔀'; font-size: 14px; }
+            .codicon.\$package::before { content: '📦'; font-size: 14px; }
+            .codicon.\$zip::before { content: '🗜️'; font-size: 14px; }
+            .codicon.\$docker::before { content: '🐳'; font-size: 14px; }
+            .codicon.\$settings::before { content: '⚙️'; font-size: 14px; }
+            .codicon.\$lock::before { content: '🔒'; font-size: 14px; }
+            .codicon.\$terminal::before { content: '💻'; font-size: 14px; }
+            .codicon.\$file-text::before { content: '📄'; font-size: 14px; }
+            .codicon.\$pdf::before { content: '📕'; font-size: 14px; }
+            .codicon.\$word::before { content: '📘'; font-size: 14px; }
+            .codicon.\$xml::before { content: '📰'; font-size: 14px; }
+            .codicon.\$yaml::before { content: '📐'; font-size: 14px; }
+            .codicon.\$npm::before { content: '📦'; font-size: 14px; }
+            .codicon.\$header::before { content: '📑'; font-size: 14px; }
+            .codicon.\$file-code::before { content: '📝'; font-size: 14px; }
             
             .tree-container.with-icons .tree-folder .folder-icon,
             .tree-container.with-icons .tree-file .file-icon {
-                display: inline-block;
+                display: inline-flex;
             }
             
             .tree-container.without-icons .folder-icon,

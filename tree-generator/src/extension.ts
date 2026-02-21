@@ -36,14 +36,19 @@ export function activate(context: vscode.ExtensionContext) {
                 rootPath = workspaceFolders[0].uri.fsPath;
             }
 
+            // Limpiar la ruta de posibles caracteres especiales
+            rootPath = rootPath.replace(/\t/g, '').trim();
+
             // Preguntar al usuario si quiere incluir archivos ocultos
             const includeHidden = await vscode.window.showQuickPick(['Sí', 'No'], {
                 placeHolder: '¿Incluir archivos ocultos (como .git, node_modules)?'
             });
 
+            if (includeHidden === undefined) return; // Usuario canceló
+
             // Obtener profundidad máxima
             const maxDepth = await getMaxDepth();
-
+            
             // Generar el árbol
             const treeData = await generateDirectoryTree(rootPath, {
                 includeHidden: includeHidden === 'Sí',
@@ -57,13 +62,12 @@ export function activate(context: vscode.ExtensionContext) {
                 vscode.ViewColumn.One,
                 {
                     enableScripts: true,
-                    retainContextWhenHidden: true,
-                    localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath, 'media'))]
+                    retainContextWhenHidden: true
                 }
             );
 
             // Enviar los datos al WebView
-            panel.webview.html = getWebviewContent(panel.webview, context.extensionPath, rootPath, treeData);
+            panel.webview.html = getWebviewContent(rootPath, treeData, includeHidden === 'Sí');
 
             // Manejar mensajes del WebView
             panel.webview.onDidReceiveMessage(
@@ -72,13 +76,22 @@ export function activate(context: vscode.ExtensionContext) {
                         case 'refresh':
                             // Regenerar el árbol con nuevas opciones
                             const newIncludeHidden = message.includeHidden === 'true';
-                            const newTreeData = await generateDirectoryTree(message.rootPath, {
+                            const newMaxDepth = message.maxDepth ? parseInt(message.maxDepth) : undefined;
+                            
+                            // Limpiar la ruta de nuevo
+                            const cleanRootPath = message.rootPath.replace(/\t/g, '').trim();
+                            
+                            vscode.window.showInformationMessage(`Regenerando árbol...`);
+                            
+                            const newTreeData = await generateDirectoryTree(cleanRootPath, {
                                 includeHidden: newIncludeHidden,
-                                maxDepth: message.maxDepth ? parseInt(message.maxDepth) : undefined
+                                maxDepth: newMaxDepth
                             });
+                            
                             panel.webview.postMessage({ 
                                 command: 'updateTree', 
-                                treeData: newTreeData 
+                                treeData: newTreeData,
+                                includeHidden: newIncludeHidden
                             });
                             break;
                         case 'copy':
@@ -102,8 +115,6 @@ export function activate(context: vscode.ExtensionContext) {
                 undefined,
                 context.subscriptions
             );
-
-            vscode.window.showInformationMessage('Árbol de directorios generado correctamente');
 
         } catch (error) {
             vscode.window.showErrorMessage(`Error al generar el árbol: ${error}`);
@@ -151,42 +162,76 @@ async function getMaxDepth(): Promise<number | undefined> {
 async function generateDirectoryTree(rootPath: string, options: { includeHidden: boolean, maxDepth?: number }): Promise<{ text: string, html: string }> {
     const rootName = path.basename(rootPath);
     let textTree = `${rootName}/\n`;
-    let htmlTree = `<div class="tree-root">${rootName}/</div><div class="tree-children">`;
+    let htmlTree = `<div class="tree-root"><span class="icon">📁</span> ${rootName}/</div><div class="tree-children">`;
     
     try {
+        // Verificar que el directorio existe
+        if (!fs.existsSync(rootPath)) {
+            throw new Error(`El directorio no existe: ${rootPath}`);
+        }
+
         const items = await fs.promises.readdir(rootPath);
         
-        const filteredItems = items.filter(item => {
-            if (!options.includeHidden && (item.startsWith('.') || item === 'node_modules')) {
-                return false;
+        // Primero, obtener información de todos los items para ordenar
+        const itemsWithStats = await Promise.all(
+            items.map(async (item) => {
+                const itemPath = path.join(rootPath, item);
+                try {
+                    const stat = await fs.promises.stat(itemPath);
+                    return {
+                        name: item,
+                        path: itemPath,
+                        isDirectory: stat.isDirectory(),
+                        isFile: stat.isFile()
+                    };
+                } catch {
+                    return {
+                        name: item,
+                        path: itemPath,
+                        isDirectory: false,
+                        isFile: false,
+                        error: true
+                    };
+                }
+            })
+        );
+
+        // Filtrar según opciones
+        const filteredItems = itemsWithStats.filter(item => {
+            if (!options.includeHidden) {
+                if (item.name.startsWith('.') || item.name === 'node_modules' || item.name === '.git') {
+                    return false;
+                }
             }
             return true;
         });
 
+        // Ordenar: directorios primero, luego archivos, ambos alfabéticamente
+        filteredItems.sort((a, b) => {
+            if (a.isDirectory && !b.isDirectory) return -1;
+            if (!a.isDirectory && b.isDirectory) return 1;
+            return a.name.localeCompare(b.name);
+        });
+
         for (let i = 0; i < filteredItems.length; i++) {
             const item = filteredItems[i];
-            const itemPath = path.join(rootPath, item);
             const isLast = i === filteredItems.length - 1;
             
-            try {
-                const stat = await fs.promises.stat(itemPath);
-                
-                if (stat.isDirectory()) {
-                    const result = await processDirectory(itemPath, item, isLast, options, 1);
-                    textTree += result.text;
-                    htmlTree += result.html;
-                } else {
-                    textTree += processFile(item, isLast);
-                    htmlTree += processFileHtml(item, isLast, false);
-                }
-            } catch (error) {
-                textTree += `${isLast ? '└── ' : '├── '}${item} (error al acceder)\n`;
-                htmlTree += processFileHtml(item, isLast, true);
+            if (item.error) {
+                textTree += `${isLast ? '└── ' : '├── '}${item.name} (error al acceder)\n`;
+                htmlTree += `<div class="tree-file error"><span class="icon">⚠️</span> ${item.name} (error)</div>`;
+            } else if (item.isDirectory) {
+                const result = await processDirectory(item.path, item.name, isLast, options, 1);
+                textTree += result.text;
+                htmlTree += result.html;
+            } else {
+                textTree += processFile(item.name, isLast);
+                htmlTree += processFileHtml(item.name, isLast);
             }
         }
     } catch (error) {
-        textTree += `Error al leer el directorio: ${error}\n`;
-        htmlTree += `<div class="tree-item error">Error al leer el directorio: ${error}</div>`;
+        textTree = `Error al leer el directorio: ${error}\n`;
+        htmlTree = `<div class="tree-item error"><span class="icon">❌</span> Error al leer el directorio: ${error}</div>`;
     }
     
     htmlTree += '</div>';
@@ -203,8 +248,9 @@ async function processDirectory(
 ): Promise<{ text: string, html: string }> {
     const prefix = isLast ? '└── ' : '├── ';
     let textResult = `${prefix}${dirName}/\n`;
-    let htmlResult = `<div class="tree-folder"><span class="codicon $(folder)"></span> ${dirName}/</div><div class="tree-children">`;
+    let htmlResult = `<div class="tree-folder"><span class="icon">📁</span> ${dirName}/</div><div class="tree-children">`;
     
+    // Si alcanzamos la profundidad máxima, no procesamos más
     if (options.maxDepth && depth >= options.maxDepth) {
         htmlResult += '</div>';
         return { text: textResult, html: htmlResult };
@@ -213,46 +259,75 @@ async function processDirectory(
     try {
         const items = await fs.promises.readdir(dirPath);
         
-        const filteredItems = items.filter(item => {
-            if (!options.includeHidden && (item.startsWith('.') || item === 'node_modules')) {
-                return false;
+        // Primero, obtener información de todos los items para ordenar
+        const itemsWithStats = await Promise.all(
+            items.map(async (item) => {
+                const itemPath = path.join(dirPath, item);
+                try {
+                    const stat = await fs.promises.stat(itemPath);
+                    return {
+                        name: item,
+                        path: itemPath,
+                        isDirectory: stat.isDirectory(),
+                        isFile: stat.isFile()
+                    };
+                } catch {
+                    return {
+                        name: item,
+                        path: itemPath,
+                        isDirectory: false,
+                        isFile: false,
+                        error: true
+                    };
+                }
+            })
+        );
+
+        // Filtrar según opciones
+        const filteredItems = itemsWithStats.filter(item => {
+            if (!options.includeHidden) {
+                if (item.name.startsWith('.') || item.name === 'node_modules' || item.name === '.git') {
+                    return false;
+                }
             }
             return true;
         });
 
+        // Ordenar: directorios primero, luego archivos, ambos alfabéticamente
+        filteredItems.sort((a, b) => {
+            if (a.isDirectory && !b.isDirectory) return -1;
+            if (!a.isDirectory && b.isDirectory) return 1;
+            return a.name.localeCompare(b.name);
+        });
+
         for (let i = 0; i < filteredItems.length; i++) {
             const item = filteredItems[i];
-            const itemPath = path.join(dirPath, item);
             const itemIsLast = i === filteredItems.length - 1;
             const newPrefix = isLast ? '    ' : '│   ';
             
-            try {
-                const stat = await fs.promises.stat(itemPath);
-                
-                if (stat.isDirectory()) {
-                    const subDirResult = await processDirectory(itemPath, item, itemIsLast, options, depth + 1);
-                    const subDirLines = subDirResult.text.split('\n');
-                    for (let j = 0; j < subDirLines.length; j++) {
-                        const line = subDirLines[j];
-                        if (j === 0) {
-                            textResult += line + '\n';
-                        } else if (line.trim() !== '') {
-                            textResult += newPrefix + line + '\n';
-                        }
+            if (item.error) {
+                textResult += `${newPrefix}${itemIsLast ? '└── ' : '├── '}${item.name} (error al acceder)\n`;
+                htmlResult += `<div class="tree-file error"><span class="icon">⚠️</span> ${item.name} (error)</div>`;
+            } else if (item.isDirectory) {
+                const subDirResult = await processDirectory(item.path, item.name, itemIsLast, options, depth + 1);
+                const subDirLines = subDirResult.text.split('\n');
+                for (let j = 0; j < subDirLines.length; j++) {
+                    const line = subDirLines[j];
+                    if (j === 0) {
+                        textResult += line + '\n';
+                    } else if (line.trim() !== '') {
+                        textResult += newPrefix + line + '\n';
                     }
-                    htmlResult += subDirResult.html;
-                } else {
-                    textResult += `${newPrefix}${itemIsLast ? '└── ' : '├── '}${item}\n`;
-                    htmlResult += processFileHtml(item, itemIsLast, false, newPrefix.includes('│'));
                 }
-            } catch (error) {
-                textResult += `${newPrefix}${itemIsLast ? '└── ' : '├── '}${item} (error al acceder)\n`;
-                htmlResult += processFileHtml(item, itemIsLast, true, newPrefix.includes('│'));
+                htmlResult += subDirResult.html;
+            } else {
+                textResult += `${newPrefix}${itemIsLast ? '└── ' : '├── '}${item.name}\n`;
+                htmlResult += processFileHtml(item.name, itemIsLast);
             }
         }
     } catch (error) {
         textResult += `Error al leer el directorio: ${error}\n`;
-        htmlResult += `<div class="tree-item error">Error al leer el directorio: ${error}</div>`;
+        htmlResult += `<div class="tree-item error"><span class="icon">❌</span> Error al leer el directorio: ${error}</div>`;
     }
     
     htmlResult += '</div>';
@@ -265,206 +340,112 @@ function processFile(fileName: string, isLast: boolean): string {
 }
 
 // Procesar un archivo (HTML)
-function processFileHtml(fileName: string, isLast: boolean, isError: boolean = false, hasParent: boolean = false): string {
-    const iconClass = getFileIconClass(fileName);
+function processFileHtml(fileName: string, isLast: boolean, isError: boolean = false): string {
+    const icon = getFileIcon(fileName);
     const errorClass = isError ? ' error' : '';
-    return `<div class="tree-file${errorClass}"><span class="codicon ${iconClass}"></span> ${fileName}</div>`;
+    return `<div class="tree-file${errorClass}"><span class="icon">${icon}</span> ${fileName}</div>`;
 }
 
-// Obtener clase de icono según extensión
-function getFileIconClass(fileName: string): string {
-    const ext = path.extname(fileName).toLowerCase();
-    const baseName = path.basename(fileName).toLowerCase();
-    
-    // Map of file extensions to VS Code icon classes
-    const iconMap: { [key: string]: string } = {
-        // TypeScript/JavaScript
-        '.ts': 'ts-file',
-        '.tsx': 'ts-file',
-        '.js': 'js-file',
-        '.jsx': 'js-file',
-        '.mjs': 'js-file',
-        '.cjs': 'js-file',
-        
-        // Web
-        '.html': 'html-file',
-        '.htm': 'html-file',
-        '.css': 'css-file',
-        '.scss': 'css-file',
-        '.sass': 'css-file',
-        '.less': 'css-file',
-        
-        // Data/Config
-        '.json': 'json-file',
-        '.xml': 'xml-file',
-        '.yaml': 'yaml-file',
-        '.yml': 'yaml-file',
-        
-        // Documents
-        '.md': 'md-file',
-        '.txt': 'txt-file',
-        '.pdf': 'pdf-file',
-        
-        // Images
-        '.png': 'img-file',
-        '.jpg': 'img-file',
-        '.jpeg': 'img-file',
-        '.gif': 'img-file',
-        '.svg': 'img-file',
-        '.ico': 'img-file',
-        '.webp': 'img-file',
-        
-        // Code files
-        '.py': 'py-file',
-        '.java': 'java-file',
-        '.c': 'c-file',
-        '.cpp': 'cpp-file',
-        '.h': 'h-file',
-        '.hpp': 'hpp-file',
-        '.cs': 'cs-file',
-        '.go': 'go-file',
-        '.rs': 'rs-file',
-        '.rb': 'rb-file',
-        '.php': 'php-file',
-        '.swift': 'swift-file',
-        '.kt': 'kt-file',
-        '.scala': 'scala-file',
-        
-        // Package/Build files
-        '.lock': 'lock-file',
-        '.vsix': 'vsix-file',
-        '.npm': 'npm-file',
-        
-        // Docker/Config
-        'dockerfile': 'dockerfile-file',
-        '.dockerfile': 'dockerfile-file',
-        'makefile': 'makefile-file',
-        '.env': 'env-file',
-        '.gitignore': 'gitignore-file',
-        
-        // Database
-        '.sql': 'sql-file',
-        '.db': 'db-file',
-        '.sqlite': 'sqlite-file',
-        
-        // Other
-        '.zip': 'zip-file',
-        '.tar': 'zip-file',
-        '.gz': 'zip-file',
-        '.log': 'log-file',
-        '.sh': 'sh-file',
-        '.bat': 'bat-file',
-        '.ps1': 'ps1-file'
-    };
-    
-    // Check for exact filename matches
-    if (baseName === 'dockerfile') return 'dockerfile-file';
-    if (baseName === 'makefile') return 'makefile-file';
-    if (baseName === '.gitignore') return 'gitignore-file';
-    if (baseName === '.env') return 'env-file';
-    
-    return iconMap[ext] || 'file-icon';
-}
-
-// Obtener icono según extensión usando iconos de VS Code
+// Obtener icono según extensión
 function getFileIcon(fileName: string): string {
     const ext = path.extname(fileName).toLowerCase();
     const baseName = path.basename(fileName).toLowerCase();
     
-    // Map of file extensions to VS Code codicon class names
+    // Map of file extensions to emoji icons
     const iconMap: { [key: string]: string } = {
         // TypeScript/JavaScript
-        '.ts': '$(symbol-type) ts-file',
-        '.tsx': '$(symbol-type) ts-file',
-        '.js': '$(symbol-numeric) js-file',
-        '.jsx': '$(symbol-numeric) js-file',
-        '.mjs': '$(symbol-numeric) js-file',
-        '.cjs': '$(symbol-numeric) js-file',
+        '.ts': '🔷',
+        '.tsx': '⚛️',
+        '.js': '🟨',
+        '.jsx': '⚛️',
+        '.mjs': '🟨',
+        '.cjs': '🟨',
         
         // Web
-        '.html': '$(code) html-file',
-        '.htm': '$(code) html-file',
-        '.css': '$(symbol-property) css-file',
-        '.scss': '$(symbol-property) css-file',
-        '.sass': '$(symbol-property) css-file',
-        '.less': '$(symbol-property) css-file',
+        '.html': '🌐',
+        '.htm': '🌐',
+        '.css': '🎨',
+        '.scss': '🎨',
+        '.sass': '🎨',
+        '.less': '🎨',
         
         // Data/Config
-        '.json': '$(json) json-file',
-        '.xml': '$(xml) xml-file',
-        '.yaml': '$(yaml) yaml-file',
-        '.yml': '$(yaml) yaml-file',
+        '.json': '📋',
+        '.xml': '📰',
+        '.yaml': '📐',
+        '.yml': '📐',
         
         // Documents
-        '.md': '$(markdown) md-file',
-        '.txt': '$(file-text) txt-file',
-        '.pdf': '$(pdf) pdf-file',
-        '.doc': '$(word) doc-file',
-        '.docx': '$(word) doc-file',
+        '.md': '📝',
+        '.txt': '📄',
+        '.pdf': '📕',
         
         // Images
-        '.png': '$(image) img-file',
-        '.jpg': '$(image) img-file',
-        '.jpeg': '$(image) img-file',
-        '.gif': '$(image) img-file',
-        '.svg': '$(image) img-file',
-        '.ico': '$(image) img-file',
-        '.webp': '$(image) img-file',
+        '.png': '🖼️',
+        '.jpg': '🖼️',
+        '.jpeg': '🖼️',
+        '.gif': '🖼️',
+        '.svg': '🖼️',
+        '.ico': '🖼️',
+        '.webp': '🖼️',
         
         // Code files
-        '.py': '$(python) py-file',
-        '.java': '$(java) java-file',
-        '.c': '$(c) c-file',
-        '.cpp': '$(cpp) cpp-file',
-        '.h': '$(header) h-file',
-        '.hpp': '$(header) hpp-file',
-        '.cs': '$(csharp) cs-file',
-        '.go': '$(go) go-file',
-        '.rs': '$(rust) rs-file',
-        '.rb': '$(ruby) rb-file',
-        '.php': '$(php) php-file',
-        '.swift': '$(swift) swift-file',
-        '.kt': '$(kotlin) kt-file',
-        '.scala': '$(scala) scala-file',
+        '.py': '🐍',
+        '.java': '☕',
+        '.c': '📘',
+        '.cpp': '📗',
+        '.h': '📑',
+        '.hpp': '📑',
+        '.cs': '🎯',
+        '.go': '🐹',
+        '.rs': '🦀',
+        '.rb': '💎',
+        '.php': '🐘',
+        '.swift': '🐦',
+        '.kt': '🟣',
+        '.scala': '🔴',
         
         // Package/Build files
-        '.lock': '$(lock) lock-file',
-        '.vsix': '$(package) vsix-file',
-        '.npm': '$(npm) npm-file',
+        '.lock': '🔒',
+        '.vsix': '📦',
         
         // Docker/Config
-        'dockerfile': '$(docker) dockerfile-file',
-        '.dockerfile': '$(docker) dockerfile-file',
-        'makefile': '$(file-code) makefile-file',
-        '.env': '$(settings) env-file',
-        '.gitignore': '$(git) gitignore-file',
+        '.env': '⚙️',
+        '.gitignore': '🔀',
         
         // Database
-        '.sql': '$(database) sql-file',
-        '.db': '$(database) db-file',
-        '.sqlite': '$(database) sqlite-file',
+        '.sql': '🗄️',
+        '.db': '🗄️',
+        '.sqlite': '🗄️',
         
         // Other
-        '.zip': '$(zip) zip-file',
-        '.tar': '$(zip) tar-file',
-        '.gz': '$(zip) gz-file',
-        '.log': '$(file-text) log-file',
-        '.sh': '$(terminal) sh-file',
-        '.bat': '$(terminal) bat-file',
-        '.ps1': '$(terminal) ps1-file'
+        '.zip': '🗜️',
+        '.tar': '🗜️',
+        '.gz': '🗜️',
+        '.log': '📋',
+        '.sh': '💻',
+        '.bat': '💻',
+        '.ps1': '💻',
+        '.map': '🗺️'
     };
     
-    // Check for exact filename matches first
-    if (baseName === 'dockerfile') return '$(docker) dockerfile-file';
-    if (baseName === 'makefile') return '$(file-code) makefile-file';
-    if (baseName === '.gitignore') return '$(git) gitignore-file';
-    if (baseName === '.env') return '$(settings) env-file';
+    // Check for exact filename matches
+    if (baseName === 'dockerfile') return '🐳';
+    if (baseName === 'makefile') return '⚙️';
+    if (baseName === '.gitignore') return '🔀';
+    if (baseName === '.env') return '⚙️';
+    if (baseName === 'package.json') return '📦';
+    if (baseName === 'package-lock.json') return '🔒';
+    if (baseName === 'tsconfig.json') return '⚙️';
     
-    return iconMap[ext] || '$(file) file-icon';
+    return iconMap[ext] || '📄';
 }
 
 // Generar el contenido HTML del WebView
-function getWebviewContent(webview: vscode.Webview, extensionPath: string, rootPath: string, treeData: { text: string, html: string }): string {
+function getWebviewContent(rootPath: string, treeData: { text: string, html: string }, includeHidden: boolean): string {
+    // Escapar la ruta para JSON
+    const escapedRootPath = rootPath.replace(/\\/g, '\\\\');
+    
     return `<!DOCTYPE html>
     <html lang="es">
     <head>
@@ -472,12 +453,6 @@ function getWebviewContent(webview: vscode.Webview, extensionPath: string, rootP
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Tree Generator</title>
         <style>
-            /* VS Code Codicons font */
-            @font-face {
-                font-family: 'codicon';
-                src: url('https://microsoft.github.io/vscode-codicons/dist/codicon.ttf') format('truetype');
-            }
-            
             body {
                 font-family: var(--vscode-font-family);
                 background-color: var(--vscode-editor-background);
@@ -503,11 +478,14 @@ function getWebviewContent(webview: vscode.Webview, extensionPath: string, rootP
             .title {
                 font-size: 1.2em;
                 font-weight: bold;
+                display: flex;
+                align-items: center;
+                gap: 8px;
             }
             
             .controls {
                 display: flex;
-                gap: 10px;
+                gap: 8px;
             }
             
             .controls button {
@@ -518,6 +496,9 @@ function getWebviewContent(webview: vscode.Webview, extensionPath: string, rootP
                 cursor: pointer;
                 border-radius: 4px;
                 font-size: 12px;
+                display: flex;
+                align-items: center;
+                gap: 4px;
             }
             
             .controls button:hover {
@@ -537,141 +518,100 @@ function getWebviewContent(webview: vscode.Webview, extensionPath: string, rootP
             }
             
             .option-group {
-                margin-bottom: 10px;
+                margin-bottom: 15px;
+                display: flex;
+                align-items: center;
+                gap: 15px;
+                flex-wrap: wrap;
             }
             
             .option-group label {
-                margin-right: 15px;
+                display: flex;
+                align-items: center;
+                gap: 5px;
                 cursor: pointer;
             }
             
             .option-group input[type="checkbox"] {
-                margin-right: 5px;
-                vertical-align: middle;
+                margin: 0;
+                cursor: pointer;
+                width: 16px;
+                height: 16px;
+            }
+            
+            .option-group input[type="number"] {
+                background-color: var(--vscode-input-background);
+                color: var(--vscode-input-foreground);
+                border: 1px solid var(--vscode-input-border);
+                padding: 4px 8px;
+                border-radius: 2px;
+                width: 100px;
+            }
+            
+            .option-group button {
+                background-color: var(--vscode-button-background);
+                color: var(--vscode-button-foreground);
+                border: none;
+                padding: 6px 12px;
+                cursor: pointer;
+                border-radius: 4px;
+                display: flex;
+                align-items: center;
+                gap: 4px;
             }
             
             .tree-container {
                 font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+                font-size: 13px;
                 line-height: 1.8;
                 white-space: pre;
+                background-color: var(--vscode-editor-background);
+                padding: 15px;
+                border-radius: 4px;
+                border: 1px solid var(--vscode-panel-border);
+                overflow-x: auto;
             }
             
             .tree-root {
                 font-weight: bold;
-                margin-bottom: 5px;
+                margin-bottom: 8px;
+                color: var(--vscode-symbolIcon-folderForeground);
+                font-size: 14px;
+                display: flex;
+                align-items: center;
+                gap: 4px;
             }
             
             .tree-children {
-                margin-left: 20px;
+                margin-left: 24px;
             }
             
             .tree-folder {
                 color: var(--vscode-symbolIcon-folderForeground);
-                margin-top: 2px;
+                margin: 2px 0;
+                white-space: nowrap;
                 display: flex;
                 align-items: center;
+                gap: 4px;
             }
             
             .tree-file {
-                margin-left: 0;
-                margin-top: 2px;
+                margin: 2px 0;
+                white-space: nowrap;
                 display: flex;
                 align-items: center;
+                gap: 4px;
             }
             
             .tree-file.error {
                 color: var(--vscode-errorForeground);
             }
             
-            /* VS Code Codicon styling */
-            .codicon {
-                font-family: 'codicon', sans-serif;
-                font-size: 14px;
-                line-height: 1;
+            .icon {
                 display: inline-block;
-                margin-right: 6px;
-                vertical-align: middle;
-                font-weight: normal;
-                font-style: normal;
+                width: 20px;
                 text-align: center;
-                width: 16px;
-            }
-            
-            /* File type specific icons */
-            .ts-file { color: #3178c6; }
-            .js-file { color: #f7df1e; }
-            .html-file { color: #e34c26; }
-            .css-file { color: #563d7c; }
-            .json-file { color: #cbcb41; }
-            .md-file { color: #083fa1; }
-            .img-file { color: #a1e44d; }
-            .py-file { color: #3776ab; }
-            .java-file { color: #b07219; }
-            .c-file, .cpp-file { color: #555555; }
-            .cs-file { color: #68217a; }
-            .go-file { color: #00add8; }
-            .rs-file { color: #dea584; }
-            .rb-file { color: #cc342d; }
-            .php-file { color: #4f5d95; }
-            .swift-file { color: #fa7343; }
-            .kt-file { color: #a97bff; }
-            .sql-file { color: #e38c00; }
-            .gitignore-file { color: #f14e32; }
-            .vsix-file { color: #0066bf; }
-            .zip-file { color: #b3b3b3; }
-            .dockerfile-file { color: #2496ed; }
-            .env-file { color: #ecd53f; }
-            .lock-file { color: #808080; }
-            .file-icon { color: #808080; }
-            .folder-icon { color: var(--vscode-symbolIcon-folderForeground); }
-            
-            /* Codicon folder icons */
-            .codicon.\$folder::before { content: '📁'; font-size: 14px; }
-            .codicon.\$folder-open::before { content: '📂'; font-size: 14px; }
-            .codicon.\$file::before { content: '📄'; font-size: 14px; }
-            .codicon.\$symbol-type::before { content: '🔷'; font-size: 14px; }
-            .codicon.\$symbol-numeric::before { content: '🟨'; font-size: 14px; }
-            .codicon.\$code::before { content: '🌐'; font-size: 14px; }
-            .codicon.\$symbol-property::before { content: '🎨'; font-size: 14px; }
-            .codicon.\$json::before { content: '📋'; font-size: 14px; }
-            .codicon.\$markdown::before { content: '📝'; font-size: 14px; }
-            .codicon.\$image::before { content: '🖼️'; font-size: 14px; }
-            .codicon.\$python::before { content: '🐍'; font-size: 14px; }
-            .codicon.\$java::before { content: '☕'; font-size: 14px; }
-            .codicon.\$c::before { content: '📘'; font-size: 14px; }
-            .codicon.\$cpp::before { content: '📗'; font-size: 14px; }
-            .codicon.\$csharp::before { content: '🎯'; font-size: 14px; }
-            .codicon.\$go::before { content: '🐹'; font-size: 14px; }
-            .codicon.\$rust::before { content: '🦀'; font-size: 14px; }
-            .codicon.\$ruby::before { content: '💎'; font-size: 14px; }
-            .codicon.\$php::before { content: '🐘'; font-size: 14px; }
-            .codicon.\$swift::before { content: '🐦'; font-size: 14px; }
-            .codicon.\$kotlin::before { content: '🟣'; font-size: 14px; }
-            .codicon.\$database::before { content: '🗄️'; font-size: 14px; }
-            .codicon.\$git::before { content: '🔀'; font-size: 14px; }
-            .codicon.\$package::before { content: '📦'; font-size: 14px; }
-            .codicon.\$zip::before { content: '🗜️'; font-size: 14px; }
-            .codicon.\$docker::before { content: '🐳'; font-size: 14px; }
-            .codicon.\$settings::before { content: '⚙️'; font-size: 14px; }
-            .codicon.\$lock::before { content: '🔒'; font-size: 14px; }
-            .codicon.\$terminal::before { content: '💻'; font-size: 14px; }
-            .codicon.\$file-text::before { content: '📄'; font-size: 14px; }
-            .codicon.\$pdf::before { content: '📕'; font-size: 14px; }
-            .codicon.\$word::before { content: '📘'; font-size: 14px; }
-            .codicon.\$xml::before { content: '📰'; font-size: 14px; }
-            .codicon.\$yaml::before { content: '📐'; font-size: 14px; }
-            .codicon.\$npm::before { content: '📦'; font-size: 14px; }
-            .codicon.\$header::before { content: '📑'; font-size: 14px; }
-            .codicon.\$file-code::before { content: '📝'; font-size: 14px; }
-            
-            .tree-container.with-icons .tree-folder .folder-icon,
-            .tree-container.with-icons .tree-file .file-icon {
-                display: inline-flex;
-            }
-            
-            .tree-container.without-icons .folder-icon,
-            .tree-container.without-icons .file-icon {
-                display: none;
+                font-size: 14px;
             }
             
             .footer {
@@ -686,6 +626,10 @@ function getWebviewContent(webview: vscode.Webview, extensionPath: string, rootP
             .footer a {
                 color: var(--vscode-textLink-foreground);
                 text-decoration: none;
+                cursor: pointer;
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
             }
             
             .footer a:hover {
@@ -693,83 +637,235 @@ function getWebviewContent(webview: vscode.Webview, extensionPath: string, rootP
             }
             
             .stats {
-                margin-top: 10px;
+                margin-top: 15px;
                 font-size: 0.9em;
                 color: var(--vscode-descriptionForeground);
+                padding: 10px;
+                background-color: var(--vscode-editor-inactiveSelectionBackground);
+                border-radius: 4px;
+                word-break: break-all;
+                display: flex;
+                gap: 20px;
+                flex-wrap: wrap;
+            }
+            
+            .stats div {
+                display: flex;
+                align-items: center;
+                gap: 4px;
+            }
+            
+            .loading {
+                display: inline-block;
+                width: 16px;
+                height: 16px;
+                border: 2px solid var(--vscode-button-background);
+                border-radius: 50%;
+                border-top-color: transparent;
+                animation: spin 1s linear infinite;
+            }
+            
+            @keyframes spin {
+                to { transform: rotate(360deg); }
+            }
+            
+            .status-message {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                margin: 10px 0;
+                padding: 10px;
+                background-color: var(--vscode-infoBackground);
+                color: var(--vscode-infoForeground);
+                border-radius: 4px;
+            }
+            
+            .tab-view {
+                display: flex;
+                gap: 2px;
+                margin-bottom: 15px;
+                border-bottom: 1px solid var(--vscode-panel-border);
+            }
+            
+            .tab {
+                padding: 8px 16px;
+                cursor: pointer;
+                background-color: transparent;
+                border: none;
+                color: var(--vscode-foreground);
+                opacity: 0.7;
+                border-bottom: 2px solid transparent;
+                display: flex;
+                align-items: center;
+                gap: 4px;
+            }
+            
+            .tab:hover {
+                opacity: 1;
+                background-color: var(--vscode-toolbar-hoverBackground);
+            }
+            
+            .tab.active {
+                opacity: 1;
+                border-bottom-color: var(--vscode-tab-activeBorder);
+            }
+            
+            .view {
+                display: none;
+            }
+            
+            .view.active {
+                display: block;
+            }
+            
+            .text-view {
+                font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+                font-size: 13px;
+                line-height: 1.6;
+                white-space: pre;
+                background-color: var(--vscode-editor-background);
+                padding: 15px;
+                border-radius: 4px;
+                border: 1px solid var(--vscode-panel-border);
+                overflow-x: auto;
             }
         </style>
     </head>
     <body>
         <div class="container">
             <div class="header">
-                <div class="title">📊 Árbol de Directorios: ${path.basename(rootPath)}</div>
+                <div class="title">
+                    <span class="icon">📊</span>
+                    Árbol de Directorios: ${path.basename(rootPath)}
+                </div>
                 <div class="controls">
-                    <button onclick="toggleOptions()">⚙️ Opciones</button>
-                    <button onclick="toggleIcons()">👁️ Mostrar/Ocultar iconos</button>
-                    <button onclick="copyToClipboard()">📋 Copiar</button>
-                    <button onclick="exportToFile()">💾 Exportar</button>
+                    <button onclick="toggleOptions()" title="Opciones">
+                        <span class="icon">⚙️</span>
+                        Opciones
+                    </button>
+                    <button onclick="copyToClipboard()" title="Copiar al portapapeles">
+                        <span class="icon">📋</span>
+                        Copiar
+                    </button>
+                    <button onclick="exportToFile()" title="Exportar a archivo">
+                        <span class="icon">💾</span>
+                        Exportar
+                    </button>
                 </div>
             </div>
             
             <div class="options-panel" id="optionsPanel">
                 <div class="option-group">
                     <label>
-                        <input type="checkbox" id="includeHidden" ${treeData.text.includes('.git') ? 'checked' : ''}> 
-                        Incluir archivos ocultos
+                        <input type="checkbox" id="includeHidden" ${includeHidden ? 'checked' : ''}> 
+                        <span class="icon">👁️</span>
+                        Incluir archivos ocultos (.git, node_modules, etc.)
                     </label>
+                    
+                    <label>
+                        <span class="icon">📏</span>
+                        Profundidad máxima:
+                        <input type="number" id="maxDepth" min="1" placeholder="Sin límite">
+                    </label>
+                    
+                    <button onclick="applyOptions()">
+                        <span class="icon">🔄</span>
+                        Aplicar cambios
+                    </button>
                 </div>
-                <div class="option-group">
-                    <label for="maxDepth">Profundidad máxima:</label>
-                    <input type="number" id="maxDepth" min="1" placeholder="Sin límite" style="width: 100px;">
-                </div>
-                <button onclick="applyOptions()">Aplicar cambios</button>
             </div>
             
-            <div class="tree-container with-icons" id="treeContainer">
-                ${treeData.html}
+            <div class="status-message" id="statusMessage" style="display: none;">
+                <span class="loading"></span>
+                <span id="statusText">Regenerando árbol...</span>
+            </div>
+            
+            <div class="tab-view">
+                <button class="tab active" onclick="showTab('visual')" id="tabVisual">
+                    <span class="icon">👁️</span> Vista Visual
+                </button>
+                <button class="tab" onclick="showTab('text')" id="tabText">
+                    <span class="icon">📝</span> Vista Texto
+                </button>
+            </div>
+            
+            <div class="view active" id="viewVisual">
+                <div class="tree-container" id="treeContainer">
+                    ${treeData.html}
+                </div>
+            </div>
+            
+            <div class="view" id="viewText">
+                <div class="text-view" id="textContainer">${treeData.text}</div>
             </div>
             
             <div class="stats">
-                <span>Ruta: ${rootPath}</span>
+                <div><span class="icon">📁</span> Ruta: ${rootPath}</div>
+                <div>
+                    <span class="icon">${includeHidden ? '👁️' : '👁️‍🗨️'}</span>
+                    Archivos ocultos: ${includeHidden ? 'Incluidos' : 'Excluidos'}
+                </div>
+                <div><span class="icon">📊</span> Elementos: ${(treeData.text.match(/\n/g) || []).length} líneas</div>
             </div>
             
             <div class="footer">
                 <span>¿Te gusta esta extensión? </span>
-                <a href="#" onclick="donate()">☕ Invítame un café</a>
+                <a href="#" onclick="donate()">
+                    <span class="icon">☕</span>
+                    Invítame un café
+                </a>
             </div>
         </div>
         
         <script>
             const vscode = acquireVsCodeApi();
             let currentTreeData = ${JSON.stringify(treeData)};
-            let currentRootPath = "${rootPath}";
+            let currentRootPath = "${escapedRootPath}";
             
             function toggleOptions() {
-                document.getElementById('optionsPanel').classList.toggle('visible');
+                const panel = document.getElementById('optionsPanel');
+                panel.classList.toggle('visible');
             }
             
-            function toggleIcons() {
-                const container = document.getElementById('treeContainer');
-                if (container.classList.contains('with-icons')) {
-                    container.classList.remove('with-icons');
-                    container.classList.add('without-icons');
-                } else {
-                    container.classList.remove('without-icons');
-                    container.classList.add('with-icons');
-                }
+            function showTab(tabName) {
+                document.getElementById('tabVisual').classList.remove('active');
+                document.getElementById('tabText').classList.remove('active');
+                document.getElementById('viewVisual').classList.remove('active');
+                document.getElementById('viewText').classList.remove('active');
+                
+                document.getElementById('tab' + tabName.charAt(0).toUpperCase() + tabName.slice(1)).classList.add('active');
+                document.getElementById('view' + tabName.charAt(0).toUpperCase() + tabName.slice(1)).classList.add('active');
             }
             
             function copyToClipboard() {
+                const activeTab = document.querySelector('.tab.active').id === 'tabVisual' ? 'visual' : 'text';
+                let text = '';
+                
+                if (activeTab === 'visual') {
+                    text = currentTreeData.text;
+                } else {
+                    text = document.getElementById('textContainer').innerText;
+                }
+                
                 vscode.postMessage({
                     command: 'copy',
-                    text: currentTreeData.text
+                    text: text
                 });
             }
             
             function exportToFile() {
+                const activeTab = document.querySelector('.tab.active').id === 'tabVisual' ? 'visual' : 'text';
+                let text = '';
+                
+                if (activeTab === 'visual') {
+                    text = currentTreeData.text;
+                } else {
+                    text = document.getElementById('textContainer').innerText;
+                }
+                
                 vscode.postMessage({
                     command: 'export',
-                    text: currentTreeData.text
+                    text: text
                 });
             }
             
@@ -780,15 +876,26 @@ function getWebviewContent(webview: vscode.Webview, extensionPath: string, rootP
                 vscode.commands.executeCommand('tree-generator.donate');
             }
             
+            function showLoading(show) {
+                const statusMsg = document.getElementById('statusMessage');
+                if (show) {
+                    statusMsg.style.display = 'flex';
+                } else {
+                    statusMsg.style.display = 'none';
+                }
+            }
+            
             function applyOptions() {
                 const includeHidden = document.getElementById('includeHidden').checked;
                 const maxDepth = document.getElementById('maxDepth').value;
+                
+                showLoading(true);
                 
                 vscode.postMessage({
                     command: 'refresh',
                     rootPath: currentRootPath,
                     includeHidden: includeHidden,
-                    maxDepth: maxDepth
+                    maxDepth: maxDepth || undefined
                 });
             }
             
@@ -799,6 +906,9 @@ function getWebviewContent(webview: vscode.Webview, extensionPath: string, rootP
                     case 'updateTree':
                         currentTreeData = message.treeData;
                         document.getElementById('treeContainer').innerHTML = message.treeData.html;
+                        document.getElementById('textContainer').innerText = message.treeData.text;
+                        document.getElementById('includeHidden').checked = message.includeHidden;
+                        showLoading(false);
                         break;
                 }
             });

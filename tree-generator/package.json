@@ -13,6 +13,12 @@
     "onCommand:tree-generator.generateTree"
   ],
   "main": "./out/extension.js",
+  "sponsor": {
+    "url": "https://www.buymeacoffee.com/dignodev"
+  },
+  "funding": {
+    "url": "https://www.buymeacoffee.com/dignodev"
+  },
   "contributes": {
     "commands": [
       {

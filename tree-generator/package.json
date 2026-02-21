@@ -1,0 +1,42 @@
+{
+  "name": "tree-generator",
+  "displayName": "Tree Generator",
+  "description": "Genera un árbol de directorios del proyecto",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onCommand:tree-generator.generateTree"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "tree-generator.generateTree",
+        "title": "Generar Árbol de Directorios"
+      }
+    ],
+    "menus": {
+      "explorer/context": [
+        {
+          "command": "tree-generator.generateTree",
+          "group": "navigation"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/node": "^16.x",
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.x"
+  }
+}

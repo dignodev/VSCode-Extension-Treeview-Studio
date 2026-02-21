@@ -75,9 +75,10 @@ export function activate(context: vscode.ExtensionContext) {
                 async message => {
                     switch (message.command) {
                         case 'refresh':
-                            const newIncludeHidden = message.includeHidden === 'true';
+                            // Asegurarnos de que los valores booleanos se manejen correctamente
+                            const newIncludeHidden = message.includeHidden === true || message.includeHidden === 'true';
                             const newMaxDepth = message.maxDepth ? parseInt(message.maxDepth) : undefined;
-                            const newShowIcons = message.showIcons === 'true';
+                            const newShowIcons = message.showIcons === true || message.showIcons === 'true';
                             
                             // Limpiar la ruta
                             const cleanRootPath = message.rootPath.replace(/\t/g, '').trim();
@@ -378,6 +379,7 @@ function getWebviewContent(rootPath: string, treeData: { text: string, html: str
             cursor: pointer;
             border-radius: 4px;
             font-size: 12px;
+            transition: all 0.2s ease;
         }
         
         .controls button:hover {
@@ -462,6 +464,23 @@ function getWebviewContent(rootPath: string, treeData: { text: string, html: str
             word-break: break-all;
         }
         
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 8px;
+        }
+        
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .stat-label {
+            font-weight: bold;
+            color: var(--vscode-descriptionForeground);
+        }
+        
         .footer {
             margin-top: 20px;
             padding-top: 10px;
@@ -518,7 +537,7 @@ function getWebviewContent(rootPath: string, treeData: { text: string, html: str
         <div class="header">
             <div class="title">Árbol de Directorios: ${path.basename(rootPath)}</div>
             <div class="controls">
-                <button onclick="toggleOptions()" title="Mostrar/ocultar opciones">⚙️</button>
+                <button onclick="toggleOptions()" title="Mostrar/ocultar opciones">⚙️ Opciones</button>
                 <button onclick="toggleIcons()" id="toggleIconsBtn" class="${showIcons ? 'active' : ''}" title="${showIcons ? 'Ocultar iconos' : 'Mostrar iconos'}">
                     ${showIcons ? '🔷 Ocultar iconos' : '📄 Mostrar iconos'}
                 </button>
@@ -536,10 +555,11 @@ function getWebviewContent(rootPath: string, treeData: { text: string, html: str
                 
                 <label>
                     Profundidad máxima:
-                    <input type="number" id="maxDepth" min="1" placeholder="Sin límite">
+                    <input type="number" id="maxDepth" min="1" placeholder="Sin límite" value="">
                 </label>
                 
                 <button onclick="applyOptions()">Aplicar cambios</button>
+                <button onclick="resetOptions()">Restablecer</button>
             </div>
         </div>
         
@@ -553,15 +573,23 @@ function getWebviewContent(rootPath: string, treeData: { text: string, html: str
         </div>
         
         <div class="stats">
-            <div>Ruta: ${rootPath}</div>
-            <div style="margin-top: 5px;">
-                Archivos ocultos: ${includeHidden ? 'Incluidos' : 'Excluidos'}
-            </div>
-            <div style="margin-top: 5px;">
-                Iconos: ${showIcons ? 'Mostrando' : 'Ocultos'}
-            </div>
-            <div style="margin-top: 5px;">
-                Líneas: ${(treeData.text.match(/\n/g) || []).length}
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <span class="stat-label">Ruta:</span>
+                    <span title="${rootPath}">${rootPath.length > 50 ? rootPath.substring(0, 47) + '...' : rootPath}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Archivos ocultos:</span>
+                    <span id="hiddenStatus">${includeHidden ? 'Incluidos' : 'Excluidos'}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Iconos:</span>
+                    <span id="iconsStatus">${showIcons ? 'Mostrando' : 'Ocultos'}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Líneas:</span>
+                    <span>${(treeData.text.match(/\n/g) || []).length}</span>
+                </div>
             </div>
         </div>
         
@@ -575,6 +603,7 @@ function getWebviewContent(rootPath: string, treeData: { text: string, html: str
         const vscode = acquireVsCodeApi();
         let currentTreeData = ${JSON.stringify(treeData)};
         let currentRootPath = "${escapedRootPath}";
+        let currentIncludeHidden = ${includeHidden};
         let currentShowIcons = ${showIcons};
         
         function toggleOptions() {
@@ -582,14 +611,25 @@ function getWebviewContent(rootPath: string, treeData: { text: string, html: str
         }
         
         function toggleIcons() {
+            // Cambiar el estado local
             currentShowIcons = !currentShowIcons;
+            
+            // Actualizar el botón inmediatamente para feedback visual
+            updateIconsButton();
+            
+            // Aplicar el cambio
+            applyOptions();
+        }
+        
+        function updateIconsButton() {
             const btn = document.getElementById('toggleIconsBtn');
             btn.className = currentShowIcons ? 'active' : '';
             btn.title = currentShowIcons ? 'Ocultar iconos' : 'Mostrar iconos';
             btn.innerHTML = currentShowIcons ? '🔷 Ocultar iconos' : '📄 Mostrar iconos';
-            
-            // Aplicar el cambio
-            applyOptions();
+        }
+        
+        function updateHiddenCheckbox() {
+            document.getElementById('includeHidden').checked = currentIncludeHidden;
         }
         
         function copyToClipboard() {
@@ -616,12 +656,32 @@ function getWebviewContent(rootPath: string, treeData: { text: string, html: str
             statusMsg.style.display = show ? 'flex' : 'none';
         }
         
+        function resetOptions() {
+            // Restablecer a valores por defecto
+            currentIncludeHidden = false;
+            currentShowIcons = true;
+            
+            // Actualizar UI
+            updateIconsButton();
+            updateHiddenCheckbox();
+            document.getElementById('maxDepth').value = '';
+            
+            // Aplicar cambios
+            applyOptions();
+        }
+        
         function applyOptions() {
+            // Obtener valores actuales del DOM
             const includeHidden = document.getElementById('includeHidden').checked;
             const maxDepth = document.getElementById('maxDepth').value;
             
+            // Actualizar variables locales
+            currentIncludeHidden = includeHidden;
+            
+            // Mostrar indicador de carga
             showLoading(true);
             
+            // Enviar mensaje a la extensión
             vscode.postMessage({
                 command: 'refresh',
                 rootPath: currentRootPath,
@@ -634,28 +694,30 @@ function getWebviewContent(rootPath: string, treeData: { text: string, html: str
         window.addEventListener('message', event => {
             const message = event.data;
             if (message.command === 'updateTree') {
+                // Actualizar datos locales
                 currentTreeData = message.treeData;
+                currentIncludeHidden = message.includeHidden;
                 currentShowIcons = message.showIcons;
-                document.getElementById('treeContainer').innerHTML = message.treeData.html;
-                document.getElementById('includeHidden').checked = message.includeHidden;
                 
-                // Actualizar el botón de iconos
-                const btn = document.getElementById('toggleIconsBtn');
-                btn.className = currentShowIcons ? 'active' : '';
-                btn.title = currentShowIcons ? 'Ocultar iconos' : 'Mostrar iconos';
-                btn.innerHTML = currentShowIcons ? '🔷 Ocultar iconos' : '📄 Mostrar iconos';
+                // Actualizar el contenido del árbol
+                document.getElementById('treeContainer').innerHTML = message.treeData.html;
+                
+                // Actualizar checkbox y botón de iconos
+                document.getElementById('includeHidden').checked = currentIncludeHidden;
+                updateIconsButton();
                 
                 // Actualizar estadísticas
-                const statsDiv = document.querySelector('.stats');
-                if (statsDiv) {
-                    const iconStatus = statsDiv.children[2];
-                    if (iconStatus) {
-                        iconStatus.innerHTML = \`Iconos: \${currentShowIcons ? 'Mostrando' : 'Ocultos'}\`;
-                    }
-                }
+                document.getElementById('hiddenStatus').textContent = currentIncludeHidden ? 'Incluidos' : 'Excluidos';
+                document.getElementById('iconsStatus').textContent = currentShowIcons ? 'Mostrando' : 'Ocultos';
                 
+                // Ocultar indicador de carga
                 showLoading(false);
             }
+        });
+        
+        // Inicializar valores
+        document.addEventListener('DOMContentLoaded', function() {
+            updateIconsButton();
         });
     </script>
 </body>

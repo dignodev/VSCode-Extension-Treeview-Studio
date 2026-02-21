@@ -494,11 +494,11 @@ function getWebviewContent(rootPath: string, treeData: { text: string, html: str
 <body>
     <div class="container">
         <div class="header">
-            <div class="title">📊 Árbol de Directorios: ${path.basename(rootPath)}</div>
+            <div class="title">Árbol de Directorios: ${path.basename(rootPath)}</div>
             <div class="controls">
-                <button onclick="toggleOptions()">⚙️ Opciones</button>
-                <button onclick="copyToClipboard()">📋 Copiar</button>
-                <button onclick="exportToFile()">💾 Exportar</button>
+                <button onclick="toggleOptions()">Opciones</button>
+                <button onclick="copyToClipboard()">Copiar</button>
+                <button onclick="exportToFile()">Exportar</button>
             </div>
         </div>
         
@@ -506,15 +506,15 @@ function getWebviewContent(rootPath: string, treeData: { text: string, html: str
             <div class="option-group">
                 <label>
                     <input type="checkbox" id="includeHidden" ${includeHidden ? 'checked' : ''}> 
-                    👁️ Incluir archivos ocultos
+                    Incluir archivos ocultos
                 </label>
                 
                 <label>
-                    📏 Profundidad máxima:
+                    Profundidad máxima:
                     <input type="number" id="maxDepth" min="1" placeholder="Sin límite">
                 </label>
                 
-                <button onclick="applyOptions()">🔄 Aplicar cambios</button>
+                <button onclick="applyOptions()">Aplicar cambios</button>
             </div>
         </div>
         

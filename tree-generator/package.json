@@ -1,16 +1,18 @@
 {
   "name": "tree-generator",
   "displayName": "Tree Generator",
-  "description": "Genera un árbol de directorios del proyecto",
-  "version": "0.0.1",
+  "description": "Genera un árbol de directorios del proyecto en una interfaz visual interactiva",
+  "version": "0.1.0",
   "engines": {
     "vscode": "^1.85.0"
   },
   "categories": [
-    "Other"
+    "Other",
+    "Visualization"
   ],
   "activationEvents": [
-    "onCommand:tree-generator.generateTree"
+    "onCommand:tree-generator.generateTree",
+    "onCommand:tree-generator.donate"
   ],
   "main": "./out/extension.js",
   "sponsor": {
@@ -23,14 +25,21 @@
     "commands": [
       {
         "command": "tree-generator.generateTree",
-        "title": "Generar Árbol de Directorios"
+        "title": "Generar Árbol de Directorios",
+        "category": "Tree Generator"
+      },
+      {
+        "command": "tree-generator.donate",
+        "title": "Apoyar Tree Generator ☕",
+        "category": "Tree Generator"
       }
     ],
     "menus": {
       "explorer/context": [
         {
           "command": "tree-generator.generateTree",
-          "group": "navigation"
+          "group": "navigation",
+          "when": "explorerResourceIsFolder"
         }
       ]
     }

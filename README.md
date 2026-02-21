@@ -1,4 +1,4 @@
-# VSCode Tree Generator
+# VSCode Tree Generator 🌳
 
 English  | [日本語](./README.jp.md) | [Spanish](./README.es.md)
 
@@ -15,6 +15,48 @@ A Visual Studio Code extension that generates a directory tree visualization of 
 - **Context Menu Integration**: Right-click on any folder in the Explorer to generate its tree
 - **Workspace Support**: Works with the entire workspace if no folder is selected
 - **Visual Tree Format**: Uses standard tree notation (`├──`, `└──`, `│`) for clear visualization
+
+
+## Características 
+
+- **Interfaz visual interactiva**: El árbol se muestra en una WebView con iconos
+- **Opciones en tiempo real**: Cambia la configuración sin regenerar el árbol
+- **Mostrar/ocultar iconos**: Personaliza la visualización
+- **Exportar a archivo**: Guarda el árbol como archivo de texto
+- **Copiar al portapapeles**: Copia el árbol rápidamente
+- **Filtrado inteligente**: Opción para incluir o excluir archivos ocultos
+- **Límite de profundidad**: Controla qué tan profundo quieres explorar
+
+## Cómo usar 
+
+1. Haz clic derecho en cualquier carpeta del explorador
+2. Selecciona "Generar Árbol de Directorios"
+3. Elige si quieres incluir archivos ocultos
+4. (Opcional) Establece una profundidad máxima
+5. ¡Listo! El árbol se abrirá en una nueva pestaña
+
+## Interfaz 
+
+La nueva interfaz incluye:
+- **Botón de opciones** para cambiar configuración
+- **Botón de iconos** para mostrar/ocultar iconos
+- **Botón de copiar** para copiar al portapapeles
+- **Botón de exportar** para guardar como archivo
+- **Estadísticas** de la ruta actual
+
+## Iconos por tipo de archivo 🖼️
+
+- 📁 Carpetas
+- 🔷 Archivos TypeScript (.ts)
+- 🟨 Archivos JavaScript (.js)
+- 📋 Archivos JSON (.json)
+- 🌐 Archivos HTML (.html)
+- 🎨 Archivos CSS (.css)
+- 📝 Archivos Markdown (.md)
+- 📄 Archivos de texto (.txt)
+- 🔒 Archivos de configuración (.gitignore)
+- 📦 Paquetes (.vsix)
+- 🖼️ Imágenes (.png, .jpg, .svg, .ico)
 
 ## Installation
 

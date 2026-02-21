@@ -160,12 +160,12 @@ async function getMaxDepth() {
 // Función para generar el árbol visual con formato adecuado
 function generateVisualTree(rootPath, options) {
     const rootName = path.basename(rootPath);
-    let result = `📁 ${rootName}/\n`;
+    let treeOutput = `📁 ${rootName}/\n`;
     function processDirectory(dirPath, prefix = '', depth = 0) {
         if (options.maxDepth && depth >= options.maxDepth) {
             return '';
         }
-        let result = '';
+        let dirOutput = '';
         try {
             const items = fs.readdirSync(dirPath);
             // Filtrar items
@@ -209,28 +209,36 @@ function generateVisualTree(rootPath, options) {
                 const isLast = i === itemsWithStats.length - 1;
                 const connector = isLast ? '└── ' : '├── ';
                 if (item.isDirectory) {
-                    result += `${prefix}${connector}📁 ${item.name}/\n`;
+                    dirOutput += `${prefix}${connector}📁 ${item.name}/\n`;
                     const newPrefix = prefix + (isLast ? '    ' : '│   ');
-                    result += processDirectory(item.path, newPrefix, depth + 1);
+                    dirOutput += processDirectory(item.path, newPrefix, depth + 1);
                 }
                 else {
                     const icon = getFileIcon(item.name);
-                    result += `${prefix}${connector}${icon} ${item.name}\n`;
+                    dirOutput += `${prefix}${connector}${icon} ${item.name}\n`;
                 }
             }
         }
         catch (error) {
-            result += `${prefix}Error: ${error}\n`;
+            dirOutput += `${prefix}Error: ${error}\n`;
         }
-        return result;
+        return dirOutput;
     }
-    return result + processDirectory(rootPath, '', 1);
+    treeOutput += processDirectory(rootPath, '', 1);
+    return treeOutput;
 }
 async function generateDirectoryTree(rootPath, options) {
     // Generar el árbol visual con formato
     const visualTree = generateVisualTree(rootPath, options);
+    // Escapar caracteres especiales para HTML y asegurar que se muestren correctamente
+    const escapedTree = visualTree
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
     // Para el HTML, simplemente envolvemos el texto en un pre con estilo monoespaciado
-    const htmlTree = `<pre style="font-family: 'Consolas', 'Monaco', 'Courier New', monospace; font-size: 13px; line-height: 1.6; margin: 0; white-space: pre-wrap;">${visualTree}</pre>`;
+    const htmlTree = `<pre style="font-family: 'Consolas', 'Monaco', 'Courier New', monospace; font-size: 13px; line-height: 1.6; margin: 0; white-space: pre;">${escapedTree}</pre>`;
     return {
         text: visualTree,
         html: htmlTree

@@ -244,7 +244,52 @@ function generateVisualTree(rootPath: string, options: { includeHidden: boolean,
     return treeOutput;
 }
 
-async function generateDirectoryTree(rootPath: string, options: { includeHidden: boolean, maxDepth?: number, showIcons: boolean }): Promise<{ text: string, html: string }> {
+// Función para calcular el tamaño total del directorio
+function calculateDirectorySize(rootPath: string, includeHidden: boolean): number {
+    let totalSize = 0;
+    
+    function processDirectory(dirPath: string, depth: number = 0): void {
+        if (depth > 20) return; // Evitar recursion excesiva
+        
+        try {
+            const items = fs.readdirSync(dirPath);
+            
+            for (const item of items) {
+                if (!includeHidden && (item.startsWith('.') || item === 'node_modules' || item === '.git')) {
+                    continue;
+                }
+                
+                const itemPath = path.join(dirPath, item);
+                try {
+                    const stat = fs.statSync(itemPath);
+                    if (stat.isDirectory()) {
+                        processDirectory(itemPath, depth + 1);
+                    } else {
+                        totalSize += stat.size;
+                    }
+                } catch {
+                    // Ignorar errores de acceso
+                }
+            }
+        } catch {
+            // Ignorar errores de lectura
+        }
+    }
+    
+    processDirectory(rootPath, 0);
+    return totalSize;
+}
+
+// Función para formatear tamaño en bytes
+function formatSize(bytes: number): string {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+async function generateDirectoryTree(rootPath: string, options: { includeHidden: boolean, maxDepth?: number, showIcons: boolean }): Promise<{ text: string, html: string, size: string }> {
     // Obtener configuración de fuente
     const fontConfig = getFontConfig();
     
@@ -262,9 +307,14 @@ async function generateDirectoryTree(rootPath: string, options: { includeHidden:
     // Para el HTML, usamos la configuración de fuente con RobotoBold por defecto
     const htmlTree = `<pre style="font-family: 'RobotoBold !important', '${fontConfig.fontFamily}'; font-size: ${fontConfig.fontSize}px; margin: 0; white-space: pre;">${escapedTree}</pre>`;
     
+    // Calcular el tamaño del directorio
+    const directorySize = calculateDirectorySize(rootPath, options.includeHidden);
+    const formattedSize = formatSize(directorySize);
+    
     return { 
         text: visualTree, 
-        html: htmlTree 
+        html: htmlTree,
+        size: formattedSize
     };
 }
 
@@ -341,7 +391,7 @@ function getFileIcon(fileName: string): string {
     return iconMap[ext] || '📄';
 }
 
-function getWebviewContent(rootPath: string, treeData: { text: string, html: string }, includeHidden: boolean, showIcons: boolean, panel: vscode.WebviewPanel): string {
+function getWebviewContent(rootPath: string, treeData: { text: string, html: string, size: string }, includeHidden: boolean, showIcons: boolean, panel: vscode.WebviewPanel): string {
     const escapedRootPath = rootPath.replace(/\\/g, '\\\\');
     const fontConfig = getFontConfig();
     const fontUri = vscode.Uri.joinPath(vscode.extensions.getExtension('dignodev.tree-generator')!.extensionUri, 'resources', 'fonts', 'Roboto-Bold.ttf');
@@ -608,6 +658,10 @@ function getWebviewContent(rootPath: string, treeData: { text: string, html: str
                 <div class="stat-item">
                     <span class="stat-label">Líneas:</span>
                     <span>${(treeData.text.match(/\n/g) || []).length}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Tamaño:</span>
+                    <span>${treeData.size}</span>
                 </div>
             </div>
         </div>

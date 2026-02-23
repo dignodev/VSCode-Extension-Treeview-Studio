@@ -241,6 +241,49 @@ function generateVisualTree(rootPath, options) {
     treeOutput += processDirectory(rootPath, '', 1);
     return treeOutput;
 }
+// Función para calcular el tamaño total del directorio
+function calculateDirectorySize(rootPath, includeHidden) {
+    let totalSize = 0;
+    function processDirectory(dirPath, depth = 0) {
+        if (depth > 20)
+            return; // Evitar recursion excesiva
+        try {
+            const items = fs.readdirSync(dirPath);
+            for (const item of items) {
+                if (!includeHidden && (item.startsWith('.') || item === 'node_modules' || item === '.git')) {
+                    continue;
+                }
+                const itemPath = path.join(dirPath, item);
+                try {
+                    const stat = fs.statSync(itemPath);
+                    if (stat.isDirectory()) {
+                        processDirectory(itemPath, depth + 1);
+                    }
+                    else {
+                        totalSize += stat.size;
+                    }
+                }
+                catch {
+                    // Ignorar errores de acceso
+                }
+            }
+        }
+        catch {
+            // Ignorar errores de lectura
+        }
+    }
+    processDirectory(rootPath, 0);
+    return totalSize;
+}
+// Función para formatear tamaño en bytes
+function formatSize(bytes) {
+    if (bytes === 0)
+        return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
 async function generateDirectoryTree(rootPath, options) {
     // Obtener configuración de fuente
     const fontConfig = getFontConfig();
@@ -255,9 +298,13 @@ async function generateDirectoryTree(rootPath, options) {
         .replace(/'/g, '&#39;');
     // Para el HTML, usamos la configuración de fuente con RobotoBold por defecto
     const htmlTree = `<pre style="font-family: 'RobotoBold !important', '${fontConfig.fontFamily}'; font-size: ${fontConfig.fontSize}px; margin: 0; white-space: pre;">${escapedTree}</pre>`;
+    // Calcular el tamaño del directorio
+    const directorySize = calculateDirectorySize(rootPath, options.includeHidden);
+    const formattedSize = formatSize(directorySize);
     return {
         text: visualTree,
-        html: htmlTree
+        html: htmlTree,
+        size: formattedSize
     };
 }
 function getFileIcon(fileName) {
@@ -602,6 +649,10 @@ function getWebviewContent(rootPath, treeData, includeHidden, showIcons, panel) 
                 <div class="stat-item">
                     <span class="stat-label">Líneas:</span>
                     <span>${(treeData.text.match(/\n/g) || []).length}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Tamaño:</span>
+                    <span>${treeData.size}</span>
                 </div>
             </div>
         </div>

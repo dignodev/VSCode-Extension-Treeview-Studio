@@ -143,6 +143,10 @@ function activate(context) {
                             vscode.window.showInformationMessage(`Árbol guardado en ${uri.fsPath}`);
                         }
                         break;
+                    case 'copySelection':
+                        await vscode.env.clipboard.writeText(message.text);
+                        vscode.window.showInformationMessage('Selección copiada al portapapeles');
+                        break;
                     case 'donate':
                         vscode.commands.executeCommand('tree-generator.donate');
                         break;
@@ -253,7 +257,7 @@ function generateVisualTree(rootPath, options) {
     treeOutput += processDirectory(rootPath, '', 1);
     return treeOutput;
 }
-// Función para generar el árbol HTML con estructura colapsable que mantiene la indentación
+// Función para generar el árbol HTML con estructura colapsable
 function generateCollapsibleHTML(rootPath, options, fontConfig) {
     const rootName = path.basename(rootPath);
     const rootIcon = options.showIcons ? '📁 ' : '';
@@ -306,28 +310,16 @@ function generateCollapsibleHTML(rootPath, options, fontConfig) {
                 const connector = isLastItem ? '└── ' : '├── ';
                 const itemId = `item-${depth}-${i}`;
                 // Crear el prefijo visual para mantener la estructura del árbol
-                let visualPrefix = '';
-                if (depth > 0) {
-                    // Mantener la estructura de líneas verticales para niveles anteriores
-                    for (let d = 0; d < depth; d++) {
-                        if (d === depth - 1) {
-                            visualPrefix += isLast ? '    ' : '│   ';
-                        }
-                        else {
-                            // Necesitamos saber si en niveles anteriores había más elementos
-                            visualPrefix += '    '; // Simplificado, pero podríamos hacerlo más complejo
-                        }
-                    }
-                }
+                let visualPrefix = prefix;
                 if (item.isDirectory) {
                     const dirIcon = options.showIcons ? '📁 ' : '';
                     const folderId = `folder-${itemId}`;
                     const contentId = `content-${itemId}`;
                     // Determinar el prefijo para el contenido de la carpeta
-                    const contentPrefix = visualPrefix + (isLastItem ? '    ' : '│   ');
+                    const contentPrefix = prefix + (isLastItem ? '    ' : '│   ');
                     html += `
-                        <div class="tree-item folder" data-depth="${depth}">
-                            <div class="tree-line folder-header" onclick="toggleFolder('${contentId}', this)">
+                        <div class="tree-item folder" data-depth="${depth}" data-path="${item.path}">
+                            <div class="tree-line folder-header" onclick="toggleFolder('${contentId}', this)" data-fullpath="${item.path}">
                                 <span class="prefix">${visualPrefix}</span>
                                 <span class="connector">${connector}</span>
                                 <span class="folder-icon ${options.showIcons ? 'visible' : 'hidden'}">${dirIcon}</span>
@@ -343,8 +335,8 @@ function generateCollapsibleHTML(rootPath, options, fontConfig) {
                 else {
                     const icon = options.showIcons ? getFileIcon(item.name) + ' ' : '';
                     html += `
-                        <div class="tree-item file" data-depth="${depth}">
-                            <div class="tree-line">
+                        <div class="tree-item file" data-depth="${depth}" data-path="${item.path}">
+                            <div class="tree-line" data-fullpath="${item.path}">
                                 <span class="prefix">${visualPrefix}</span>
                                 <span class="connector">${connector}</span>
                                 <span class="file-icon ${options.showIcons ? 'visible' : 'hidden'}">${icon}</span>
@@ -574,6 +566,7 @@ function getWebviewContent(rootPath, treeData, includeHidden, showIcons, panel, 
         .controls {
             display: flex;
             gap: 8px;
+            flex-wrap: wrap;
         }
         
         .controls button {
@@ -658,11 +651,15 @@ function getWebviewContent(rootPath, treeData, includeHidden, showIcons, panel, 
             font-family: 'UbuntuMono', 'RobotoRegular', '${fontConfig.fontFamily}', monospace;
             font-size: ${fontConfig.fontSize}px;
             line-height: 1.5;
+            user-select: text;
+            -webkit-user-select: text;
+            cursor: text;
         }
         
         /* Estilos para el árbol colapsable */
         .collapsible-tree {
-            user-select: none;
+            user-select: text;
+            -webkit-user-select: text;
         }
         
         .tree-item {
@@ -675,9 +672,10 @@ function getWebviewContent(rootPath, treeData, includeHidden, showIcons, panel, 
             align-items: center;
             padding: 2px 4px;
             border-radius: 3px;
-            cursor: default;
             white-space: nowrap;
             line-height: 1.5;
+            user-select: text;
+            -webkit-user-select: text;
         }
         
         .folder > .tree-line {
@@ -688,12 +686,20 @@ function getWebviewContent(rootPath, treeData, includeHidden, showIcons, panel, 
             background-color: var(--vscode-list-hoverBackground);
         }
         
+        /* Permitir selección de texto */
+        .tree-line span {
+            user-select: text;
+            -webkit-user-select: text;
+        }
+        
         .prefix {
             display: inline-block;
             white-space: pre;
             font-family: inherit;
             color: var(--vscode-descriptionForeground);
             opacity: 0.5;
+            user-select: text;
+            -webkit-user-select: text;
         }
         
         .connector {
@@ -701,6 +707,8 @@ function getWebviewContent(rootPath, treeData, includeHidden, showIcons, panel, 
             width: 20px;
             color: var(--vscode-descriptionForeground);
             opacity: 0.7;
+            user-select: text;
+            -webkit-user-select: text;
         }
         
         .folder-icon, .file-icon, .root-icon {
@@ -708,6 +716,8 @@ function getWebviewContent(rootPath, treeData, includeHidden, showIcons, panel, 
             width: 20px;
             text-align: center;
             margin-right: 4px;
+            user-select: text;
+            -webkit-user-select: text;
         }
         
         .folder-icon.visible, .file-icon.visible, .root-icon.visible {
@@ -723,6 +733,8 @@ function getWebviewContent(rootPath, treeData, includeHidden, showIcons, panel, 
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            user-select: text;
+            -webkit-user-select: text;
         }
         
         .toggle-icon {
@@ -732,6 +744,7 @@ function getWebviewContent(rootPath, treeData, includeHidden, showIcons, panel, 
             color: var(--vscode-descriptionForeground);
             font-size: 10px;
             transition: transform 0.2s ease;
+            pointer-events: none;
         }
         
         .folder-content {
@@ -831,6 +844,12 @@ function getWebviewContent(rootPath, treeData, includeHidden, showIcons, panel, 
             white-space: pre-wrap;
             word-wrap: break-word;
         }
+        
+        /* Estilo para la selección */
+        ::selection {
+            background-color: var(--vscode-editor-selectionBackground);
+            color: var(--vscode-editor-selectionForeground);
+        }
     </style>
 </head>
 <body>
@@ -844,7 +863,8 @@ function getWebviewContent(rootPath, treeData, includeHidden, showIcons, panel, 
                 </button>
                 <button onclick="expandAll()" title="Expandir todas las carpetas">Expandir todo</button>
                 <button onclick="collapseAll()" title="Colapsar todas las carpetas">Colapsar todo</button>
-                <button onclick="copyToClipboard()" title="Copiar al portapapeles">Copiar</button>
+                <button onclick="copyVisibleTree()" title="Copiar el árbol visible (con estado actual)">Copiar árbol visible</button>
+                <button onclick="copySelection()" title="Copiar la selección actual">Copiar selección</button>
                 <button onclick="exportToFile()" title="Exportar a archivo">Exportar</button>
             </div>
         </div>
@@ -939,17 +959,105 @@ function getWebviewContent(rootPath, treeData, includeHidden, showIcons, panel, 
             document.getElementById('includeHidden').checked = currentIncludeHidden;
         }
         
-        function copyToClipboard() {
+        // Función para generar texto del árbol basado en el estado actual del DOM
+        function generateTreeTextFromDOM() {
+            const rootElement = document.querySelector('.collapsible-tree');
+            if (!rootElement) return '';
+            
+            let result = '';
+            
+            function processElement(element, prefix = '', isLast = true) {
+                // Obtener el tipo de elemento
+                const isFolder = element.classList.contains('folder');
+                const isFile = element.classList.contains('file');
+                const isRoot = element.classList.contains('root');
+                
+                if (isRoot) {
+                    const rootName = element.querySelector('.root-name')?.textContent || '';
+                    const rootIcon = currentShowIcons ? '📁 ' : '';
+                    result += rootIcon + rootName + '\\n';
+                    
+                    // Procesar contenido de la raíz
+                    const rootContent = element.querySelector('.folder-content');
+                    if (rootContent) {
+                        const children = Array.from(rootContent.children);
+                        children.forEach((child, index) => {
+                            const isLastChild = index === children.length - 1;
+                            processElement(child, '', isLastChild);
+                        });
+                    }
+                } else if (isFolder) {
+                    // Verificar si la carpeta está colapsada
+                    const folderContent = element.querySelector('.folder-content');
+                    const isCollapsed = folderContent?.classList.contains('collapsed');
+                    
+                    // Obtener el texto de la línea
+                    const treeLine = element.querySelector('.tree-line');
+                    if (treeLine) {
+                        const prefixSpan = treeLine.querySelector('.prefix')?.textContent || '';
+                        const connector = treeLine.querySelector('.connector')?.textContent || '';
+                        const icon = treeLine.querySelector('.folder-icon')?.textContent || '';
+                        const name = treeLine.querySelector('.folder-name')?.textContent || '';
+                        
+                        result += prefixSpan + connector + icon + name + '\\n';
+                    }
+                    
+                    // Si no está colapsada, procesar el contenido
+                    if (!isCollapsed && folderContent) {
+                        const children = Array.from(folderContent.children);
+                        children.forEach((child, index) => {
+                            const isLastChild = index === children.length - 1;
+                            processElement(child, '', isLastChild);
+                        });
+                    }
+                } else if (isFile) {
+                    const treeLine = element.querySelector('.tree-line');
+                    if (treeLine) {
+                        const prefixSpan = treeLine.querySelector('.prefix')?.textContent || '';
+                        const connector = treeLine.querySelector('.connector')?.textContent || '';
+                        const icon = treeLine.querySelector('.file-icon')?.textContent || '';
+                        const name = treeLine.querySelector('.file-name')?.textContent || '';
+                        
+                        result += prefixSpan + connector + icon + name + '\\n';
+                    }
+                }
+            }
+            
+            processElement(rootElement);
+            return result;
+        }
+        
+        // Función para copiar el árbol visible (con estado actual)
+        function copyVisibleTree() {
+            const treeText = generateTreeTextFromDOM();
             vscode.postMessage({
                 command: 'copy',
-                text: currentTreeData.text
+                text: treeText
             });
         }
         
+        // Función para copiar la selección actual
+        function copySelection() {
+            const selection = window.getSelection().toString();
+            if (selection) {
+                vscode.postMessage({
+                    command: 'copySelection',
+                    text: selection
+                });
+            } else {
+                vscode.window.showInformationMessage('No hay texto seleccionado');
+            }
+        }
+        
+        function copyToClipboard() {
+            copyVisibleTree();
+        }
+        
         function exportToFile() {
+            const treeText = generateTreeTextFromDOM();
             vscode.postMessage({
                 command: 'export',
-                text: currentTreeData.text
+                text: treeText
             });
         }
         
@@ -1055,6 +1163,18 @@ function getWebviewContent(rootPath, treeData, includeHidden, showIcons, panel, 
                 
                 // Ocultar indicador de carga
                 showLoading(false);
+            }
+        });
+        
+        // Permitir copiar con Ctrl+C
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === 'c') {
+                const selection = window.getSelection().toString();
+                if (selection) {
+                    // Si hay selección, copiar la selección
+                    e.preventDefault();
+                    copySelection();
+                }
             }
         });
         

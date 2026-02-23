@@ -1,0 +1,70 @@
+{
+  "extension": {
+    "name": "Tree Generator",
+    "description": "在交互式视觉界面中生成项目的目录树"
+  },
+  "commands": {
+    "generateTree": "生成目录树",
+    "donate": "支持 Tree Generator ☕",
+    "language": "更改语言"
+  },
+  "messages": {
+    "noProject": "没有打开的项目",
+    "error": "生成树时出错: {{error}}",
+    "regenerating": "正在重新生成树...",
+    "copied": "树已复制到剪贴板",
+    "selectionCopied": "选择已复制到剪贴板",
+    "noSelection": "未选择文本",
+    "saved": "树已保存到 {{path}}",
+    "donationPrompt": "喜欢 Tree Generator 吗？如果你想支持开发，请我喝杯咖啡 ☕",
+    "donateNow": "立即支持",
+    "later": "稍后",
+    "languageChanged": "语言已成功更改"
+  },
+  "options": {
+    "includeHidden": "包括隐藏文件（如 .git, node_modules）？",
+    "yes": "是",
+    "no": "否",
+    "maxDepth": "最大深度（留空表示无限制）",
+    "maxDepthPlaceholder": "示例: 3",
+    "invalidNumber": "请输入有效数字"
+  },
+  "ui": {
+    "title": "目录树: {{path}}",
+    "options": "选项",
+    "hideIcons": "隐藏图标",
+    "showIcons": "显示图标",
+    "expandAll": "全部展开",
+    "collapseAll": "全部折叠",
+    "copyVisible": "复制可见树",
+    "copySelection": "复制选择",
+    "export": "导出",
+    "apply": "应用更改",
+    "reset": "重置",
+    "language": "语言",
+    "selectLanguage": "选择语言"
+  },
+  "stats": {
+    "path": "路径",
+    "hidden": "隐藏文件",
+    "included": "包括",
+    "excluded": "排除",
+    "icons": "图标",
+    "showing": "显示",
+    "iconsHidden": "隐藏",
+    "lines": "行数",
+    "size": "大小"
+  },
+  "footer": {
+    "likeIt": "喜欢这个扩展吗？",
+    "buyCoffee": "☕ 请我喝杯咖啡"
+  },
+  "languages": {
+    "en": "英语",
+    "es": "西班牙语",
+    "fr": "法语",
+    "de": "德语",
+    "zh": "中文",
+    "ja": "日语"
+  }
+}

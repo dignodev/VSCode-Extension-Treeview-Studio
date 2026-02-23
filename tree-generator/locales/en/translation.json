@@ -1,0 +1,70 @@
+{
+  "extension": {
+    "name": "Tree Generator",
+    "description": "Generates a directory tree of the project in an interactive visual interface"
+  },
+  "commands": {
+    "generateTree": "Generate Directory Tree",
+    "donate": "Support Tree Generator ☕",
+    "language": "Change Language"
+  },
+  "messages": {
+    "noProject": "No project open",
+    "error": "Error generating tree: {{error}}",
+    "regenerating": "Regenerating tree...",
+    "copied": "Tree copied to clipboard",
+    "selectionCopied": "Selection copied to clipboard",
+    "noSelection": "No text selected",
+    "saved": "Tree saved in {{path}}",
+    "donationPrompt": "Enjoying Tree Generator? If you want to support development, consider buying me a coffee ☕",
+    "donateNow": "Support now",
+    "later": "Later",
+    "languageChanged": "Language changed successfully"
+  },
+  "options": {
+    "includeHidden": "Include hidden files (like .git, node_modules)?",
+    "yes": "Yes",
+    "no": "No",
+    "maxDepth": "Maximum depth (leave empty for no limit)",
+    "maxDepthPlaceholder": "Example: 3",
+    "invalidNumber": "Please enter a valid number"
+  },
+  "ui": {
+    "title": "Directory Tree: {{path}}",
+    "options": "Options",
+    "hideIcons": "Hide icons",
+    "showIcons": "Show icons",
+    "expandAll": "Expand all",
+    "collapseAll": "Collapse all",
+    "copyVisible": "Copy visible tree",
+    "copySelection": "Copy selection",
+    "export": "Export",
+    "apply": "Apply changes",
+    "reset": "Reset",
+    "language": "Language",
+    "selectLanguage": "Select language"
+  },
+  "stats": {
+    "path": "Path",
+    "hidden": "Hidden files",
+    "included": "Included",
+    "excluded": "Excluded",
+    "icons": "Icons",
+    "showing": "Showing",
+    "iconsHidden": "Hidden",
+    "lines": "Lines",
+    "size": "Size"
+  },
+  "footer": {
+    "likeIt": "Do you like this extension?",
+    "buyCoffee": "☕ Buy me a coffee"
+  },
+  "languages": {
+    "en": "English",
+    "es": "Spanish",
+    "fr": "French",
+    "de": "German",
+    "zh": "Chinese",
+    "ja": "Japanese"
+  }
+}

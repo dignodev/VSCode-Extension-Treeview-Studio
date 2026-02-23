@@ -38,6 +38,7 @@ exports.deactivate = deactivate;
 const vscode = __importStar(require("vscode"));
 const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
+const i18n_1 = require("./i18n");
 // Función para obtener la configuración de fuente
 function getFontConfig() {
     const config = vscode.workspace.getConfiguration('tree-generator');
@@ -46,8 +47,31 @@ function getFontConfig() {
     return { fontFamily, fontSize };
 }
 let donationShown = false;
+let i18nService;
 function activate(context) {
     console.log('Tree Generator extension activada');
+    // Inicializar servicio de internacionalización
+    i18nService = new i18n_1.I18nService(context);
+    // Registrar comando para cambiar idioma
+    context.subscriptions.push(vscode.commands.registerCommand('tree-generator.changeLanguage', async () => {
+        const languages = i18nService.getAvailableLanguages();
+        const selected = await vscode.window.showQuickPick(languages.map(lang => ({
+            label: lang.name,
+            description: lang.code,
+            code: lang.code
+        })), {
+            placeHolder: i18nService.t('ui.selectLanguage')
+        });
+        if (selected) {
+            await i18nService.setLanguage(selected.code);
+            vscode.window.showInformationMessage(i18nService.t('messages.languageChanged'));
+        }
+    }));
+    // Registrar comando para cuando cambia el idioma
+    context.subscriptions.push(vscode.commands.registerCommand('tree-generator.languageChanged', () => {
+        // Actualizar paneles abiertos si es necesario
+        vscode.window.showInformationMessage(i18nService.t('messages.languageChanged'));
+    }));
     // Registrar comando para donación
     context.subscriptions.push(vscode.commands.registerCommand('tree-generator.donate', () => {
         vscode.env.openExternal(vscode.Uri.parse('https://www.buymeacoffee.com/dignodev'));
@@ -69,7 +93,7 @@ function activate(context) {
             else {
                 const workspaceFolders = vscode.workspace.workspaceFolders;
                 if (!workspaceFolders) {
-                    vscode.window.showErrorMessage('No hay ningún proyecto abierto');
+                    vscode.window.showErrorMessage(i18nService.t('messages.noProject'));
                     return;
                 }
                 rootPath = workspaceFolders[0].uri.fsPath;
@@ -77,8 +101,8 @@ function activate(context) {
             // Limpiar la ruta de posibles caracteres especiales
             rootPath = rootPath.replace(/\t/g, '').trim();
             // Preguntar al usuario si quiere incluir archivos ocultos
-            const includeHidden = await vscode.window.showQuickPick(['Sí', 'No'], {
-                placeHolder: '¿Incluir archivos ocultos (como .git, node_modules)?'
+            const includeHidden = await vscode.window.showQuickPick([i18nService.t('options.yes'), i18nService.t('options.no')], {
+                placeHolder: i18nService.t('options.includeHidden')
             });
             if (includeHidden === undefined)
                 return;
@@ -86,12 +110,12 @@ function activate(context) {
             const maxDepth = await getMaxDepth();
             // Generar el árbol (por defecto con iconos)
             const treeData = await generateDirectoryTree(rootPath, {
-                includeHidden: includeHidden === 'Sí',
+                includeHidden: includeHidden === i18nService.t('options.yes'),
                 maxDepth: maxDepth,
                 showIcons: true // Por defecto mostrar iconos
             });
             // Crear y mostrar el panel WebView
-            const panel = vscode.window.createWebviewPanel('treeGenerator', `Árbol: ${path.basename(rootPath)}`, vscode.ViewColumn.One, {
+            const panel = vscode.window.createWebviewPanel('treeGenerator', i18nService.t('ui.title', { path: path.basename(rootPath) }), vscode.ViewColumn.One, {
                 enableScripts: true,
                 retainContextWhenHidden: true,
                 localResourceRoots: [
@@ -105,7 +129,7 @@ function activate(context) {
                 ubuntuMono: panel.webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'resources', 'fonts', 'UbuntuMono-Regular.ttf'))
             };
             // Enviar los datos al WebView
-            panel.webview.html = getWebviewContent(rootPath, treeData, includeHidden === 'Sí', true, panel, context, fontUris);
+            panel.webview.html = getWebviewContent(rootPath, treeData, includeHidden === i18nService.t('options.yes'), true, panel, context, fontUris, i18nService);
             // Manejar mensajes del WebView
             panel.webview.onDidReceiveMessage(async (message) => {
                 switch (message.command) {
@@ -116,7 +140,7 @@ function activate(context) {
                         const newShowIcons = message.showIcons === true || message.showIcons === 'true';
                         // Limpiar la ruta
                         const cleanRootPath = message.rootPath.replace(/\t/g, '').trim();
-                        vscode.window.showInformationMessage(`Regenerando árbol...`);
+                        vscode.window.showInformationMessage(i18nService.t('messages.regenerating'));
                         const newTreeData = await generateDirectoryTree(cleanRootPath, {
                             includeHidden: newIncludeHidden,
                             maxDepth: newMaxDepth,
@@ -131,7 +155,7 @@ function activate(context) {
                         break;
                     case 'copy':
                         await vscode.env.clipboard.writeText(message.text);
-                        vscode.window.showInformationMessage('Árbol copiado al portapapeles');
+                        vscode.window.showInformationMessage(i18nService.t('messages.copied'));
                         break;
                     case 'export':
                         const uri = await vscode.window.showSaveDialog({
@@ -140,29 +164,33 @@ function activate(context) {
                         });
                         if (uri) {
                             fs.writeFileSync(uri.fsPath, message.text);
-                            vscode.window.showInformationMessage(`Árbol guardado en ${uri.fsPath}`);
+                            vscode.window.showInformationMessage(i18nService.t('messages.saved', { path: uri.fsPath }));
                         }
                         break;
                     case 'copySelection':
                         await vscode.env.clipboard.writeText(message.text);
-                        vscode.window.showInformationMessage('Selección copiada al portapapeles');
+                        vscode.window.showInformationMessage(i18nService.t('messages.selectionCopied'));
                         break;
                     case 'donate':
                         vscode.commands.executeCommand('tree-generator.donate');
+                        break;
+                    case 'changeLanguage':
+                        vscode.commands.executeCommand('tree-generator.changeLanguage');
                         break;
                 }
             }, undefined, context.subscriptions);
         }
         catch (error) {
-            vscode.window.showErrorMessage(`Error al generar el árbol: ${error}`);
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            vscode.window.showErrorMessage(i18nService.t('messages.error', { error: errorMessage }));
         }
     });
     context.subscriptions.push(disposable);
     // Mostrar mensaje de donación
     setTimeout(() => {
         if (!context.globalState.get('donationShown') && !donationShown) {
-            vscode.window.showInformationMessage('¿Disfrutando Tree Generator? Si quieres apoyar el desarrollo, considera invitarme a un café ☕', 'Apoyar ahora', 'Más tarde').then(selection => {
-                if (selection === 'Apoyar ahora') {
+            vscode.window.showInformationMessage(i18nService.t('messages.donationPrompt'), i18nService.t('messages.donateNow'), i18nService.t('messages.later')).then(selection => {
+                if (selection === i18nService.t('messages.donateNow')) {
                     vscode.commands.executeCommand('tree-generator.donate');
                 }
                 context.globalState.update('donationShown', true);
@@ -174,11 +202,11 @@ function activate(context) {
 function deactivate() { }
 async function getMaxDepth() {
     const input = await vscode.window.showInputBox({
-        prompt: 'Profundidad máxima (dejar vacío para sin límite)',
-        placeHolder: 'Ejemplo: 3',
+        prompt: i18nService.t('options.maxDepth'),
+        placeHolder: i18nService.t('options.maxDepthPlaceholder'),
         validateInput: (value) => {
             if (value && isNaN(parseInt(value))) {
-                return 'Por favor, ingresa un número válido';
+                return i18nService.t('options.invalidNumber');
             }
             return null;
         }
@@ -258,7 +286,7 @@ function generateVisualTree(rootPath, options) {
     return treeOutput;
 }
 // Función para generar el árbol HTML con estructura colapsable
-function generateCollapsibleHTML(rootPath, options, fontConfig) {
+function generateCollapsibleHTML(rootPath, options, fontConfig, i18n) {
     const rootName = path.basename(rootPath);
     const rootIcon = options.showIcons ? '📁 ' : '';
     function processDirectory(dirPath, depth = 0, prefix = '', isLast = true) {
@@ -313,7 +341,6 @@ function generateCollapsibleHTML(rootPath, options, fontConfig) {
                 let visualPrefix = prefix;
                 if (item.isDirectory) {
                     const dirIcon = options.showIcons ? '📁 ' : '';
-                    const folderId = `folder-${itemId}`;
                     const contentId = `content-${itemId}`;
                     // Determinar el prefijo para el contenido de la carpeta
                     const contentPrefix = prefix + (isLastItem ? '    ' : '│   ');
@@ -416,7 +443,7 @@ async function generateDirectoryTree(rootPath, options) {
     // Generar el árbol visual con formato
     const visualTree = generateVisualTree(rootPath, options);
     // Generar árbol HTML colapsable
-    const collapsibleHtml = generateCollapsibleHTML(rootPath, options, fontConfig);
+    const collapsibleHtml = generateCollapsibleHTML(rootPath, options, fontConfig, i18nService);
     // Calcular el tamaño del directorio
     const directorySize = calculateDirectorySize(rootPath, options.includeHidden);
     const formattedSize = formatSize(directorySize);
@@ -502,11 +529,31 @@ function getFileIcon(fileName) {
         return '⚙️';
     return iconMap[ext] || '📄';
 }
-function getWebviewContent(rootPath, treeData, includeHidden, showIcons, panel, context, fontUris) {
+function getWebviewContent(rootPath, treeData, includeHidden, showIcons, panel, context, fontUris, i18n) {
     const escapedRootPath = rootPath.replace(/\\/g, '\\\\');
     const fontConfig = getFontConfig();
+    const currentLang = i18n.getCurrentLanguage();
+    // Traducciones para pasar al frontend
+    const translations = {
+        hideIcons: i18n.t('ui.hideIcons'),
+        showIcons: i18n.t('ui.showIcons'),
+        noSelection: i18n.t('messages.noSelection'),
+        included: i18n.t('stats.included'),
+        excluded: i18n.t('stats.excluded'),
+        showing: i18n.t('stats.showing'),
+        iconsHidden: i18n.t('stats.iconsHidden'),
+        lines: i18n.t('stats.lines'),
+        size: i18n.t('stats.size'),
+        options: i18n.t('ui.options'),
+        expandAll: i18n.t('ui.expandAll'),
+        collapseAll: i18n.t('ui.collapseAll'),
+        copyVisible: i18n.t('ui.copyVisible'),
+        copySelection: i18n.t('ui.copySelection'),
+        export: i18n.t('ui.export'),
+        language: i18n.t('ui.language')
+    };
     return `<!DOCTYPE html>
-<html lang="es">
+<html lang="${currentLang}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -863,19 +910,20 @@ function getWebviewContent(rootPath, treeData, includeHidden, showIcons, panel, 
     <div class="container">
         <div class="header">
             <div class="title-row">
-                <div class="title">Árbol de Directorios: ${path.basename(rootPath)}</div>
+                <div class="title">${i18n.t('ui.title', { path: path.basename(rootPath) })}</div>
             </div>
             
             <div class="controls-row">
-                <button onclick="toggleOptions()" title="Mostrar/ocultar opciones">Opciones</button>
-                <button onclick="toggleIcons()" id="toggleIconsBtn" class="${showIcons ? 'active' : ''}" title="${showIcons ? 'Ocultar iconos' : 'Mostrar iconos'}">
-                    ${showIcons ? 'Ocultar iconos' : 'Mostrar iconos'}
+                <button onclick="toggleOptions()" title="${i18n.t('ui.options')}">${i18n.t('ui.options')}</button>
+                <button onclick="toggleIcons()" id="toggleIconsBtn" class="${showIcons ? 'active' : ''}" title="${showIcons ? i18n.t('ui.hideIcons') : i18n.t('ui.showIcons')}">
+                    ${showIcons ? i18n.t('ui.hideIcons') : i18n.t('ui.showIcons')}
                 </button>
-                <button onclick="expandAll()" title="Expandir todas las carpetas">Expandir todo</button>
-                <button onclick="collapseAll()" title="Colapsar todas las carpetas">Colapsar todo</button>
-                <button onclick="copyVisibleTree()" title="Copiar el árbol visible (con estado actual)">Copiar árbol visible</button>
-                <button onclick="copySelection()" title="Copiar la selección actual">Copiar selección</button>
-                <button onclick="exportToFile()" title="Exportar a archivo">Exportar</button>
+                <button onclick="expandAll()" title="${i18n.t('ui.expandAll')}">${i18n.t('ui.expandAll')}</button>
+                <button onclick="collapseAll()" title="${i18n.t('ui.collapseAll')}">${i18n.t('ui.collapseAll')}</button>
+                <button onclick="copyVisibleTree()" title="${i18n.t('ui.copyVisible')}">${i18n.t('ui.copyVisible')}</button>
+                <button onclick="copySelection()" title="${i18n.t('ui.copySelection')}">${i18n.t('ui.copySelection')}</button>
+                <button onclick="exportToFile()" title="${i18n.t('ui.export')}">${i18n.t('ui.export')}</button>
+                <button onclick="changeLanguage()" title="${i18n.t('ui.language')}">🌐</button>
             </div>
         </div>
         
@@ -883,22 +931,22 @@ function getWebviewContent(rootPath, treeData, includeHidden, showIcons, panel, 
             <div class="option-group">
                 <label>
                     <input type="checkbox" id="includeHidden" ${includeHidden ? 'checked' : ''}> 
-                    Incluir archivos ocultos
+                    ${i18n.t('options.includeHidden').replace('?', '')}
                 </label>
                 
                 <label>
-                    Profundidad máxima:
-                    <input type="number" id="maxDepth" min="1" placeholder="Sin límite" value="">
+                    ${i18n.t('options.maxDepth')}:
+                    <input type="number" id="maxDepth" min="1" placeholder="${i18n.t('options.maxDepthPlaceholder')}" value="">
                 </label>
                 
-                <button onclick="applyOptions()">Aplicar cambios</button>
-                <button onclick="resetOptions()">Restablecer</button>
+                <button onclick="applyOptions()">${i18n.t('ui.apply')}</button>
+                <button onclick="resetOptions()">${i18n.t('ui.reset')}</button>
             </div>
         </div>
         
         <div class="status-message" id="statusMessage" style="display: none;">
             <span class="loading"></span>
-            <span id="statusText">Regenerando árbol...</span>
+            <span id="statusText">${i18n.t('messages.regenerating')}</span>
         </div>
         
         <div class="tree-container" id="treeContainer">
@@ -908,31 +956,31 @@ function getWebviewContent(rootPath, treeData, includeHidden, showIcons, panel, 
         <div class="stats">
             <div class="stats-grid">
                 <div class="stat-item">
-                    <span class="stat-label">Ruta:</span>
+                    <span class="stat-label">${i18n.t('stats.path')}:</span>
                     <span title="${rootPath}">${rootPath.length > 50 ? rootPath.substring(0, 47) + '...' : rootPath}</span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-label">Archivos ocultos:</span>
-                    <span id="hiddenStatus">${includeHidden ? 'Incluidos' : 'Excluidos'}</span>
+                    <span class="stat-label">${i18n.t('stats.hidden')}:</span>
+                    <span id="hiddenStatus">${includeHidden ? i18n.t('stats.included') : i18n.t('stats.excluded')}</span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-label">Iconos:</span>
-                    <span id="iconsStatus">${showIcons ? 'Mostrando' : 'Ocultos'}</span>
+                    <span class="stat-label">${i18n.t('stats.icons')}:</span>
+                    <span id="iconsStatus">${showIcons ? i18n.t('stats.showing') : i18n.t('stats.hidden')}</span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-label">Líneas:</span>
+                    <span class="stat-label">${i18n.t('stats.lines')}:</span>
                     <span>${(treeData.text.match(/\n/g) || []).length}</span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-label">Tamaño:</span>
+                    <span class="stat-label">${i18n.t('stats.size')}:</span>
                     <span>${treeData.size}</span>
                 </div>
             </div>
         </div>
         
         <div class="footer">
-            <span>¿Te gusta esta extensión? </span>
-            <a href="#" onclick="donate()">☕ Invítame un café</a>
+            <span>${i18n.t('footer.likeIt')} </span>
+            <a href="#" onclick="donate()">${i18n.t('footer.buyCoffee')}</a>
         </div>
     </div>
     
@@ -942,6 +990,9 @@ function getWebviewContent(rootPath, treeData, includeHidden, showIcons, panel, 
         let currentRootPath = "${escapedRootPath}";
         let currentIncludeHidden = ${includeHidden};
         let currentShowIcons = ${showIcons};
+        
+        // Traducciones
+        const translations = ${JSON.stringify(translations)};
         
         function toggleOptions() {
             document.getElementById('optionsPanel').classList.toggle('visible');
@@ -961,12 +1012,17 @@ function getWebviewContent(rootPath, treeData, includeHidden, showIcons, panel, 
         function updateIconsButton() {
             const btn = document.getElementById('toggleIconsBtn');
             btn.className = currentShowIcons ? 'active' : '';
-            btn.title = currentShowIcons ? 'Ocultar iconos' : 'Mostrar iconos';
-            btn.innerHTML = currentShowIcons ? 'Ocultar iconos' : 'Mostrar iconos';
+            btn.title = currentShowIcons ? translations.hideIcons : translations.showIcons;
+            btn.innerHTML = currentShowIcons ? translations.hideIcons : translations.showIcons;
         }
         
         function updateHiddenCheckbox() {
             document.getElementById('includeHidden').checked = currentIncludeHidden;
+        }
+        
+        // Función para cambiar idioma
+        function changeLanguage() {
+            vscode.postMessage({ command: 'changeLanguage' });
         }
         
         // Función para generar texto del árbol basado en el estado actual del DOM
@@ -1055,7 +1111,7 @@ function getWebviewContent(rootPath, treeData, includeHidden, showIcons, panel, 
                     text: selection
                 });
             } else {
-                vscode.window.showInformationMessage('No hay texto seleccionado');
+                vscode.window.showInformationMessage(translations.noSelection);
             }
         }
         
@@ -1168,8 +1224,8 @@ function getWebviewContent(rootPath, treeData, includeHidden, showIcons, panel, 
                 updateIconsButton();
                 
                 // Actualizar estadísticas
-                document.getElementById('hiddenStatus').textContent = currentIncludeHidden ? 'Incluidos' : 'Excluidos';
-                document.getElementById('iconsStatus').textContent = currentShowIcons ? 'Mostrando' : 'Ocultos';
+                document.getElementById('hiddenStatus').textContent = currentIncludeHidden ? translations.included : translations.excluded;
+                document.getElementById('iconsStatus').textContent = currentShowIcons ? translations.showing : translations.iconsHidden;
                 
                 // Ocultar indicador de carga
                 showLoading(false);

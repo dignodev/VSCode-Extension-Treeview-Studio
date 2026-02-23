@@ -1,0 +1,70 @@
+{
+  "extension": {
+    "name": "Tree Generator",
+    "description": "Genera un árbol de directorios del proyecto en una interfaz visual interactiva"
+  },
+  "commands": {
+    "generateTree": "Generar Árbol de Directorios",
+    "donate": "Apoyar Tree Generator ☕",
+    "language": "Cambiar Idioma"
+  },
+  "messages": {
+    "noProject": "No hay ningún proyecto abierto",
+    "error": "Error al generar el árbol: {{error}}",
+    "regenerating": "Regenerando árbol...",
+    "copied": "Árbol copiado al portapapeles",
+    "selectionCopied": "Selección copiada al portapapeles",
+    "noSelection": "No hay texto seleccionado",
+    "saved": "Árbol guardado en {{path}}",
+    "donationPrompt": "¿Disfrutando Tree Generator? Si quieres apoyar el desarrollo, considera invitarme a un café ☕",
+    "donateNow": "Apoyar ahora",
+    "later": "Más tarde",
+    "languageChanged": "Idioma cambiado correctamente"
+  },
+  "options": {
+    "includeHidden": "¿Incluir archivos ocultos (como .git, node_modules)?",
+    "yes": "Sí",
+    "no": "No",
+    "maxDepth": "Profundidad máxima (dejar vacío para sin límite)",
+    "maxDepthPlaceholder": "Ejemplo: 3",
+    "invalidNumber": "Por favor, ingresa un número válido"
+  },
+  "ui": {
+    "title": "Árbol de Directorios: {{path}}",
+    "options": "Opciones",
+    "hideIcons": "Ocultar iconos",
+    "showIcons": "Mostrar iconos",
+    "expandAll": "Expandir todo",
+    "collapseAll": "Colapsar todo",
+    "copyVisible": "Copiar árbol visible",
+    "copySelection": "Copiar selección",
+    "export": "Exportar",
+    "apply": "Aplicar cambios",
+    "reset": "Restablecer",
+    "language": "Idioma",
+    "selectLanguage": "Seleccionar idioma"
+  },
+  "stats": {
+    "path": "Ruta",
+    "hidden": "Archivos ocultos",
+    "included": "Incluidos",
+    "excluded": "Excluidos",
+    "icons": "Iconos",
+    "showing": "Mostrando",
+    "iconsHidden": "Ocultos",
+    "lines": "Líneas",
+    "size": "Tamaño"
+  },
+  "footer": {
+    "likeIt": "¿Te gusta esta extensión?",
+    "buyCoffee": "☕ Invítame un café"
+  },
+  "languages": {
+    "en": "Inglés",
+    "es": "Español",
+    "fr": "Francés",
+    "de": "Alemán",
+    "zh": "Chino",
+    "ja": "Japonés"
+  }
+}

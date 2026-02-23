@@ -1,0 +1,70 @@
+{
+  "extension": {
+    "name": "Tree Generator",
+    "description": "Génère un arbre de répertoires du projet dans une interface visuelle interactive"
+  },
+  "commands": {
+    "generateTree": "Générer l'Arbre de Répertoires",
+    "donate": "Soutenir Tree Generator ☕",
+    "language": "Changer de Langue"
+  },
+  "messages": {
+    "noProject": "Aucun projet ouvert",
+    "error": "Erreur lors de la génération de l'arbre: {{error}}",
+    "regenerating": "Régénération de l'arbre...",
+    "copied": "Arbre copié dans le presse-papiers",
+    "selectionCopied": "Sélection copiée dans le presse-papiers",
+    "noSelection": "Aucun texte sélectionné",
+    "saved": "Arbre sauvegardé dans {{path}}",
+    "donationPrompt": "Vous aimez Tree Generator? Si vous voulez soutenir le développement, offrez-moi un café ☕",
+    "donateNow": "Soutenir maintenant",
+    "later": "Plus tard",
+    "languageChanged": "Langue changée avec succès"
+  },
+  "options": {
+    "includeHidden": "Inclure les fichiers cachés (comme .git, node_modules)?",
+    "yes": "Oui",
+    "no": "Non",
+    "maxDepth": "Profondeur maximale (laisser vide pour illimité)",
+    "maxDepthPlaceholder": "Exemple: 3",
+    "invalidNumber": "Veuillez entrer un nombre valide"
+  },
+  "ui": {
+    "title": "Arbre de Répertoires: {{path}}",
+    "options": "Options",
+    "hideIcons": "Cacher les icônes",
+    "showIcons": "Afficher les icônes",
+    "expandAll": "Tout développer",
+    "collapseAll": "Tout réduire",
+    "copyVisible": "Copier l'arbre visible",
+    "copySelection": "Copier la sélection",
+    "export": "Exporter",
+    "apply": "Appliquer",
+    "reset": "Réinitialiser",
+    "language": "Langue",
+    "selectLanguage": "Choisir la langue"
+  },
+  "stats": {
+    "path": "Chemin",
+    "hidden": "Fichiers cachés",
+    "included": "Inclus",
+    "excluded": "Exclus",
+    "icons": "Icônes",
+    "showing": "Affichés",
+    "iconsHidden": "Cachés",
+    "lines": "Lignes",
+    "size": "Taille"
+  },
+  "footer": {
+    "likeIt": "Vous aimez cette extension?",
+    "buyCoffee": "☕ Offrez-moi un café"
+  },
+  "languages": {
+    "en": "Anglais",
+    "es": "Espagnol",
+    "fr": "Français",
+    "de": "Allemand",
+    "zh": "Chinois",
+    "ja": "Japonais"
+  }
+}

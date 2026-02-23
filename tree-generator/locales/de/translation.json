@@ -1,0 +1,70 @@
+{
+  "extension": {
+    "name": "Tree Generator",
+    "description": "Erzeugt einen Verzeichnisbaum des Projekts in einer interaktiven visuellen Oberfläche"
+  },
+  "commands": {
+    "generateTree": "Verzeichnisbaum generieren",
+    "donate": "Tree Generator unterstützen ☕",
+    "language": "Sprache ändern"
+  },
+  "messages": {
+    "noProject": "Kein Projekt geöffnet",
+    "error": "Fehler beim Generieren des Baums: {{error}}",
+    "regenerating": "Baum wird neu generiert...",
+    "copied": "Baum in die Zwischenablage kopiert",
+    "selectionCopied": "Auswahl in die Zwischenablage kopiert",
+    "noSelection": "Kein Text ausgewählt",
+    "saved": "Baum gespeichert unter {{path}}",
+    "donationPrompt": "Gefällt dir Tree Generator? Wenn du die Entwicklung unterstützen möchtest, lad mich auf einen Kaffee ein ☕",
+    "donateNow": "Jetzt unterstützen",
+    "later": "Später",
+    "languageChanged": "Sprache erfolgreich geändert"
+  },
+  "options": {
+    "includeHidden": "Versteckte Dateien einschließen (wie .git, node_modules)?",
+    "yes": "Ja",
+    "no": "Nein",
+    "maxDepth": "Maximale Tiefe (leer lassen für unbegrenzt)",
+    "maxDepthPlaceholder": "Beispiel: 3",
+    "invalidNumber": "Bitte gib eine gültige Zahl ein"
+  },
+  "ui": {
+    "title": "Verzeichnisbaum: {{path}}",
+    "options": "Optionen",
+    "hideIcons": "Symbole ausblenden",
+    "showIcons": "Symbole anzeigen",
+    "expandAll": "Alle erweitern",
+    "collapseAll": "Alle reduzieren",
+    "copyVisible": "Sichtbaren Baum kopieren",
+    "copySelection": "Auswahl kopieren",
+    "export": "Exportieren",
+    "apply": "Anwenden",
+    "reset": "Zurücksetzen",
+    "language": "Sprache",
+    "selectLanguage": "Sprache auswählen"
+  },
+  "stats": {
+    "path": "Pfad",
+    "hidden": "Versteckte Dateien",
+    "included": "Eingeschlossen",
+    "excluded": "Ausgeschlossen",
+    "icons": "Symbole",
+    "showing": "Angezeigt",
+    "iconsHidden": "Ausgeblendet",
+    "lines": "Zeilen",
+    "size": "Größe"
+  },
+  "footer": {
+    "likeIt": "Gefällt dir diese Erweiterung?",
+    "buyCoffee": "☕ Lad mich auf einen Kaffee ein"
+  },
+  "languages": {
+    "en": "Englisch",
+    "es": "Spanisch",
+    "fr": "Französisch",
+    "de": "Deutsch",
+    "zh": "Chinesisch",
+    "ja": "Japanisch"
+  }
+}

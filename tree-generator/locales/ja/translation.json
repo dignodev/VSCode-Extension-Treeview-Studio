@@ -1,0 +1,70 @@
+{
+  "extension": {
+    "name": "Tree Generator",
+    "description": "インタラクティブなビジュアルインターフェースでプロジェクトのディレクトリツリーを生成します"
+  },
+  "commands": {
+    "generateTree": "ディレクトリツリーを生成",
+    "donate": "Tree Generatorを支援 ☕",
+    "language": "言語を変更"
+  },
+  "messages": {
+    "noProject": "開いているプロジェクトがありません",
+    "error": "ツリー生成エラー: {{error}}",
+    "regenerating": "ツリーを再生成中...",
+    "copied": "ツリーをクリップボードにコピーしました",
+    "selectionCopied": "選択範囲をクリップボードにコピーしました",
+    "noSelection": "テキストが選択されていません",
+    "saved": "ツリーを {{path}} に保存しました",
+    "donationPrompt": "Tree Generatorをお楽しみですか？開発を支援していただけるなら、コーヒーをご馳走してください ☕",
+    "donateNow": "今すぐ支援",
+    "later": "後で",
+    "languageChanged": "言語が正常に変更されました"
+  },
+  "options": {
+    "includeHidden": "隠しファイルを含める（.git, node_modulesなど）？",
+    "yes": "はい",
+    "no": "いいえ",
+    "maxDepth": "最大深度（制限なしの場合は空白）",
+    "maxDepthPlaceholder": "例: 3",
+    "invalidNumber": "有効な数値を入力してください"
+  },
+  "ui": {
+    "title": "ディレクトリツリー: {{path}}",
+    "options": "オプション",
+    "hideIcons": "アイコンを非表示",
+    "showIcons": "アイコンを表示",
+    "expandAll": "すべて展開",
+    "collapseAll": "すべて折りたたむ",
+    "copyVisible": "表示中のツリーをコピー",
+    "copySelection": "選択範囲をコピー",
+    "export": "エクスポート",
+    "apply": "変更を適用",
+    "reset": "リセット",
+    "language": "言語",
+    "selectLanguage": "言語を選択"
+  },
+  "stats": {
+    "path": "パス",
+    "hidden": "隠しファイル",
+    "included": "含む",
+    "excluded": "除外",
+    "icons": "アイコン",
+    "showing": "表示中",
+    "iconsHidden": "非表示",
+    "lines": "行数",
+    "size": "サイズ"
+  },
+  "footer": {
+    "likeIt": "この拡張機能はお好きですか？",
+    "buyCoffee": "☕ コーヒーをご馳走する"
+  },
+  "languages": {
+    "en": "英語",
+    "es": "スペイン語",
+    "fr": "フランス語",
+    "de": "ドイツ語",
+    "zh": "中国語",
+    "ja": "日本語"
+  }
+}

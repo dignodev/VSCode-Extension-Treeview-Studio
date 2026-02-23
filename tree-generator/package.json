@@ -2,7 +2,7 @@
   "name": "tree-generator",
   "displayName": "Tree Generator",
   "description": "Genera un árbol de directorios del proyecto en una interfaz visual interactiva",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "publisher": "dignodev",
   "engines": {
     "vscode": "^1.85.0"
@@ -13,7 +13,8 @@
   ],
   "activationEvents": [
     "onCommand:tree-generator.generateTree",
-    "onCommand:tree-generator.donate"
+    "onCommand:tree-generator.donate",
+    "onCommand:tree-generator.changeLanguage"
   ],
   "main": "./out/extension.js",
   "sponsor": {
@@ -39,6 +40,11 @@
       {
         "command": "tree-generator.donate",
         "title": "Apoyar Tree Generator ☕",
+        "category": "Tree Generator"
+      },
+      {
+        "command": "tree-generator.changeLanguage",
+        "title": "Cambiar Idioma / Change Language",
         "category": "Tree Generator"
       }
     ],

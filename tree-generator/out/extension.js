@@ -550,12 +550,12 @@ function getWebviewContent(rootPath, treeData, includeHidden, showIcons, panel) 
         <div class="header">
             <div class="title">Árbol de Directorios: ${path.basename(rootPath)}</div>
             <div class="controls">
-                <button onclick="toggleOptions()" title="Mostrar/ocultar opciones">⚙️ Opciones</button>
+                <button onclick="toggleOptions()" title="Mostrar/ocultar opciones">Opciones</button>
                 <button onclick="toggleIcons()" id="toggleIconsBtn" class="${showIcons ? 'active' : ''}" title="${showIcons ? 'Ocultar iconos' : 'Mostrar iconos'}">
-                    ${showIcons ? '🔷 Ocultar iconos' : '📄 Mostrar iconos'}
+                    ${showIcons ? 'Ocultar iconos' : 'Mostrar iconos'}
                 </button>
-                <button onclick="copyToClipboard()" title="Copiar al portapapeles">📋 Copiar</button>
-                <button onclick="exportToFile()" title="Exportar a archivo">💾 Exportar</button>
+                <button onclick="copyToClipboard()" title="Copiar al portapapeles">Copiar</button>
+                <button onclick="exportToFile()" title="Exportar a archivo">Exportar</button>
             </div>
         </div>
         
@@ -638,7 +638,7 @@ function getWebviewContent(rootPath, treeData, includeHidden, showIcons, panel) 
             const btn = document.getElementById('toggleIconsBtn');
             btn.className = currentShowIcons ? 'active' : '';
             btn.title = currentShowIcons ? 'Ocultar iconos' : 'Mostrar iconos';
-            btn.innerHTML = currentShowIcons ? '🔷 Ocultar iconos' : '📄 Mostrar iconos';
+            btn.innerHTML = currentShowIcons ? 'Ocultar iconos' : 'Mostrar iconos';
         }
         
         function updateHiddenCheckbox() {

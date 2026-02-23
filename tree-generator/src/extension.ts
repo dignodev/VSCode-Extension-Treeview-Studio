@@ -2,6 +2,14 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 
+// Función para obtener la configuración de fuente
+function getFontConfig(): { fontFamily: string, fontSize: number } {
+    const config = vscode.workspace.getConfiguration('tree-generator');
+    const fontFamily = config.get<string>('fontFamily', 'Consolas, Monaco, Courier New, monospace');
+    const fontSize = config.get<number>('fontSize', 13);
+    return { fontFamily, fontSize };
+}
+
 let donationShown = false;
 
 export function activate(context: vscode.ExtensionContext) {
@@ -237,6 +245,9 @@ function generateVisualTree(rootPath: string, options: { includeHidden: boolean,
 }
 
 async function generateDirectoryTree(rootPath: string, options: { includeHidden: boolean, maxDepth?: number, showIcons: boolean }): Promise<{ text: string, html: string }> {
+    // Obtener configuración de fuente
+    const fontConfig = getFontConfig();
+    
     // Generar el árbol visual con formato
     const visualTree = generateVisualTree(rootPath, options);
     
@@ -248,8 +259,8 @@ async function generateDirectoryTree(rootPath: string, options: { includeHidden:
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#39;');
     
-    // Para el HTML, simplemente envolvemos el texto en un pre con estilo monoespaciado
-    const htmlTree = `<pre style="font-family: 'Consolas', 'Monaco', 'Courier New', monospace; font-size: 13px; line-height: 1.6; margin: 0; white-space: pre;">${escapedTree}</pre>`;
+    // Para el HTML, usamos la configuración de fuente con RobotoBold por defecto
+    const htmlTree = `<pre style="font-family: 'RobotoBold', '${fontConfig.fontFamily}'; font-size: ${fontConfig.fontSize}px; line-height: 1.6; margin: 0; white-space: pre;">${escapedTree}</pre>`;
     
     return { 
         text: visualTree, 
@@ -332,6 +343,9 @@ function getFileIcon(fileName: string): string {
 
 function getWebviewContent(rootPath: string, treeData: { text: string, html: string }, includeHidden: boolean, showIcons: boolean): string {
     const escapedRootPath = rootPath.replace(/\\/g, '\\\\');
+    const fontConfig = getFontConfig();
+    const extensionUri = vscode.extensions.getExtension('dignodev.tree-generator')?.extensionUri;
+    const fontUrl = extensionUri ? extensionUri.with({ scheme: 'vscode-resource' }).toString() + '/resources/fonts/Roboto-Bold.ttf' : '';
     
     return `<!DOCTYPE html>
 <html lang="es">
@@ -340,6 +354,12 @@ function getWebviewContent(rootPath: string, treeData: { text: string, html: str
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tree Generator</title>
     <style>
+        @font-face {
+            font-family: 'RobotoBold';
+            src: url('${fontUrl}') format('truetype');
+            font-weight: bold;
+        }
+        
         body {
             font-family: var(--vscode-font-family);
             background-color: var(--vscode-editor-background);
@@ -444,8 +464,8 @@ function getWebviewContent(rootPath: string, treeData: { text: string, html: str
         }
         
         .tree-container {
-            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-            font-size: 13px;
+            font-family: 'RobotoBold', '${fontConfig.fontFamily}';
+            font-size: ${fontConfig.fontSize}px;
             line-height: 1.6;
             background-color: var(--vscode-editor-background);
             padding: 15px;

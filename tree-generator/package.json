@@ -21,6 +21,11 @@
   "funding": {
     "url": "https://www.buymeacoffee.com/dignodev"
   },
+  "resources": {
+    "fonts": [
+      "resources/fonts/Roboto-Bold.ttf"
+    ]
+  },
   "contributes": {
     "commands": [
       {
@@ -42,6 +47,21 @@
           "when": "explorerResourceIsFolder"
         }
       ]
+    },
+    "configuration": {
+      "title": "Tree Generator",
+      "properties": {
+        "tree-generator.fontFamily": {
+          "type": "string",
+          "default": "Consolas, Monaco, Courier New, monospace",
+          "description": "Familia de fuente para el árbol de directorios"
+        },
+        "tree-generator.fontSize": {
+          "type": "number",
+          "default": 13,
+          "description": "Tamaño de fuente para el árbol"
+        }
+      }
     }
   },
   "scripts": {

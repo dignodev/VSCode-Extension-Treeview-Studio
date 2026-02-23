@@ -93,10 +93,19 @@ function activate(context) {
             // Crear y mostrar el panel WebView
             const panel = vscode.window.createWebviewPanel('treeGenerator', `Árbol: ${path.basename(rootPath)}`, vscode.ViewColumn.One, {
                 enableScripts: true,
-                retainContextWhenHidden: true
+                retainContextWhenHidden: true,
+                localResourceRoots: [
+                    vscode.Uri.joinPath(context.extensionUri, 'resources', 'fonts')
+                ]
             });
+            // Obtener las URIs de las fuentes para el webview
+            const fontUris = {
+                robotoBold: panel.webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'resources', 'fonts', 'Roboto-Bold.ttf')),
+                robotoRegular: panel.webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'resources', 'fonts', 'Roboto-Regular.ttf')),
+                ubuntuMono: panel.webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'resources', 'fonts', 'UbuntuMono-Regular.ttf'))
+            };
             // Enviar los datos al WebView
-            panel.webview.html = getWebviewContent(rootPath, treeData, includeHidden === 'Sí', true, panel);
+            panel.webview.html = getWebviewContent(rootPath, treeData, includeHidden === 'Sí', true, panel, context, fontUris);
             // Manejar mensajes del WebView
             panel.webview.onDidReceiveMessage(async (message) => {
                 switch (message.command) {
@@ -133,6 +142,9 @@ function activate(context) {
                             fs.writeFileSync(uri.fsPath, message.text);
                             vscode.window.showInformationMessage(`Árbol guardado en ${uri.fsPath}`);
                         }
+                        break;
+                    case 'donate':
+                        vscode.commands.executeCommand('tree-generator.donate');
                         break;
                 }
             }, undefined, context.subscriptions);
@@ -241,6 +253,128 @@ function generateVisualTree(rootPath, options) {
     treeOutput += processDirectory(rootPath, '', 1);
     return treeOutput;
 }
+// Función para generar el árbol HTML con estructura colapsable que mantiene la indentación
+function generateCollapsibleHTML(rootPath, options, fontConfig) {
+    const rootName = path.basename(rootPath);
+    const rootIcon = options.showIcons ? '📁 ' : '';
+    function processDirectory(dirPath, depth = 0, prefix = '', isLast = true) {
+        if (options.maxDepth && depth >= options.maxDepth) {
+            return '';
+        }
+        let html = '';
+        try {
+            const items = fs.readdirSync(dirPath);
+            // Filtrar items
+            let filteredItems = items.filter(item => {
+                if (!options.includeHidden) {
+                    if (item.startsWith('.') || item === 'node_modules' || item === '.git') {
+                        return false;
+                    }
+                }
+                return true;
+            });
+            // Obtener estadísticas para ordenar
+            const itemsWithStats = filteredItems.map(item => {
+                const itemPath = path.join(dirPath, item);
+                try {
+                    const stat = fs.statSync(itemPath);
+                    return {
+                        name: item,
+                        path: itemPath,
+                        isDirectory: stat.isDirectory()
+                    };
+                }
+                catch {
+                    return {
+                        name: item,
+                        path: itemPath,
+                        isDirectory: false
+                    };
+                }
+            });
+            // Ordenar: directorios primero
+            itemsWithStats.sort((a, b) => {
+                if (a.isDirectory && !b.isDirectory)
+                    return -1;
+                if (!a.isDirectory && b.isDirectory)
+                    return 1;
+                return a.name.localeCompare(b.name);
+            });
+            for (let i = 0; i < itemsWithStats.length; i++) {
+                const item = itemsWithStats[i];
+                const isLastItem = i === itemsWithStats.length - 1;
+                const connector = isLastItem ? '└── ' : '├── ';
+                const itemId = `item-${depth}-${i}`;
+                // Crear el prefijo visual para mantener la estructura del árbol
+                let visualPrefix = '';
+                if (depth > 0) {
+                    // Mantener la estructura de líneas verticales para niveles anteriores
+                    for (let d = 0; d < depth; d++) {
+                        if (d === depth - 1) {
+                            visualPrefix += isLast ? '    ' : '│   ';
+                        }
+                        else {
+                            // Necesitamos saber si en niveles anteriores había más elementos
+                            visualPrefix += '    '; // Simplificado, pero podríamos hacerlo más complejo
+                        }
+                    }
+                }
+                if (item.isDirectory) {
+                    const dirIcon = options.showIcons ? '📁 ' : '';
+                    const folderId = `folder-${itemId}`;
+                    const contentId = `content-${itemId}`;
+                    // Determinar el prefijo para el contenido de la carpeta
+                    const contentPrefix = visualPrefix + (isLastItem ? '    ' : '│   ');
+                    html += `
+                        <div class="tree-item folder" data-depth="${depth}">
+                            <div class="tree-line folder-header" onclick="toggleFolder('${contentId}', this)">
+                                <span class="prefix">${visualPrefix}</span>
+                                <span class="connector">${connector}</span>
+                                <span class="folder-icon ${options.showIcons ? 'visible' : 'hidden'}">${dirIcon}</span>
+                                <span class="folder-name">${item.name}/</span>
+                                <span class="toggle-icon">▼</span>
+                            </div>
+                            <div class="folder-content" id="${contentId}">
+                                ${processDirectory(item.path, depth + 1, contentPrefix, isLastItem)}
+                            </div>
+                        </div>
+                    `;
+                }
+                else {
+                    const icon = options.showIcons ? getFileIcon(item.name) + ' ' : '';
+                    html += `
+                        <div class="tree-item file" data-depth="${depth}">
+                            <div class="tree-line">
+                                <span class="prefix">${visualPrefix}</span>
+                                <span class="connector">${connector}</span>
+                                <span class="file-icon ${options.showIcons ? 'visible' : 'hidden'}">${icon}</span>
+                                <span class="file-name">${item.name}</span>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+        }
+        catch (error) {
+            html += `<div class="tree-item error">Error: ${error}</div>`;
+        }
+        return html;
+    }
+    return `
+        <div class="collapsible-tree" style="font-family: 'UbuntuMono', 'RobotoRegular', '${fontConfig.fontFamily}', monospace; font-size: ${fontConfig.fontSize}px;">
+            <div class="tree-item root folder">
+                <div class="tree-line folder-header" onclick="toggleFolder('root-content', this)">
+                    <span class="root-icon ${options.showIcons ? 'visible' : 'hidden'}">${rootIcon}</span>
+                    <span class="root-name">${rootName}/</span>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="folder-content" id="root-content">
+                    ${processDirectory(rootPath, 1, '', true)}
+                </div>
+            </div>
+        </div>
+    `;
+}
 // Función para calcular el tamaño total del directorio
 function calculateDirectorySize(rootPath, includeHidden) {
     let totalSize = 0;
@@ -289,21 +423,14 @@ async function generateDirectoryTree(rootPath, options) {
     const fontConfig = getFontConfig();
     // Generar el árbol visual con formato
     const visualTree = generateVisualTree(rootPath, options);
-    // Escapar caracteres especiales para HTML y asegurar que se muestren correctamente
-    const escapedTree = visualTree
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-    // Para el HTML, usamos la configuración de fuente con RobotoBold por defecto
-    const htmlTree = `<pre style="font-family: 'RobotoBold !important', '${fontConfig.fontFamily}'; font-size: ${fontConfig.fontSize}px; margin: 0; white-space: pre;">${escapedTree}</pre>`;
+    // Generar árbol HTML colapsable
+    const collapsibleHtml = generateCollapsibleHTML(rootPath, options, fontConfig);
     // Calcular el tamaño del directorio
     const directorySize = calculateDirectorySize(rootPath, options.includeHidden);
     const formattedSize = formatSize(directorySize);
     return {
         text: visualTree,
-        html: htmlTree,
+        html: collapsibleHtml,
         size: formattedSize
     };
 }
@@ -383,11 +510,9 @@ function getFileIcon(fileName) {
         return '⚙️';
     return iconMap[ext] || '📄';
 }
-function getWebviewContent(rootPath, treeData, includeHidden, showIcons, panel) {
+function getWebviewContent(rootPath, treeData, includeHidden, showIcons, panel, context, fontUris) {
     const escapedRootPath = rootPath.replace(/\\/g, '\\\\');
     const fontConfig = getFontConfig();
-    const fontUri = vscode.Uri.joinPath(vscode.extensions.getExtension('dignodev.tree-generator').extensionUri, 'resources', 'fonts', 'Roboto-Bold.ttf');
-    const fontUrl = panel.webview.asWebviewUri(fontUri).toString();
     return `<!DOCTYPE html>
 <html lang="es">
 <head>
@@ -397,8 +522,26 @@ function getWebviewContent(rootPath, treeData, includeHidden, showIcons, panel) 
     <style>
         @font-face {
             font-family: 'RobotoBold';
-            src: url('${fontUrl}') format('truetype');
+            src: url('${fontUris.robotoBold}') format('truetype');
             font-weight: bold;
+            font-style: normal;
+            font-display: swap;
+        }
+        
+        @font-face {
+            font-family: 'RobotoRegular';
+            src: url('${fontUris.robotoRegular}') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap;
+        }
+        
+        @font-face {
+            font-family: 'UbuntuMono';
+            src: url('${fontUris.ubuntuMono}') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap;
         }
         
         body {
@@ -425,6 +568,7 @@ function getWebviewContent(rootPath, treeData, includeHidden, showIcons, panel) 
         .title {
             font-size: 1.2em;
             font-weight: bold;
+            font-family: 'RobotoBold', var(--vscode-font-family);
         }
         
         .controls {
@@ -441,6 +585,7 @@ function getWebviewContent(rootPath, treeData, includeHidden, showIcons, panel) 
             border-radius: 4px;
             font-size: 12px;
             transition: all 0.2s ease;
+            font-family: 'RobotoRegular', var(--vscode-font-family);
         }
         
         .controls button:hover {
@@ -505,13 +650,106 @@ function getWebviewContent(rootPath, treeData, includeHidden, showIcons, panel) 
         }
         
         .tree-container {
-            font-family: 'RobotoBold', '${fontConfig.fontFamily}';
-            font-size: ${fontConfig.fontSize}px;
             background-color: var(--vscode-editor-background);
             padding: 15px;
             border-radius: 4px;
             border: 1px solid var(--vscode-panel-border);
             overflow-x: auto;
+            font-family: 'UbuntuMono', 'RobotoRegular', '${fontConfig.fontFamily}', monospace;
+            font-size: ${fontConfig.fontSize}px;
+            line-height: 1.5;
+        }
+        
+        /* Estilos para el árbol colapsable */
+        .collapsible-tree {
+            user-select: none;
+        }
+        
+        .tree-item {
+            margin: 0;
+            padding: 0;
+        }
+        
+        .tree-line {
+            display: flex;
+            align-items: center;
+            padding: 2px 4px;
+            border-radius: 3px;
+            cursor: default;
+            white-space: nowrap;
+            line-height: 1.5;
+        }
+        
+        .folder > .tree-line {
+            cursor: pointer;
+        }
+        
+        .folder > .tree-line:hover {
+            background-color: var(--vscode-list-hoverBackground);
+        }
+        
+        .prefix {
+            display: inline-block;
+            white-space: pre;
+            font-family: inherit;
+            color: var(--vscode-descriptionForeground);
+            opacity: 0.5;
+        }
+        
+        .connector {
+            display: inline-block;
+            width: 20px;
+            color: var(--vscode-descriptionForeground);
+            opacity: 0.7;
+        }
+        
+        .folder-icon, .file-icon, .root-icon {
+            display: inline-block;
+            width: 20px;
+            text-align: center;
+            margin-right: 4px;
+        }
+        
+        .folder-icon.visible, .file-icon.visible, .root-icon.visible {
+            opacity: 1;
+        }
+        
+        .folder-icon.hidden, .file-icon.hidden, .root-icon.hidden {
+            display: none;
+        }
+        
+        .folder-name, .file-name, .root-name {
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .toggle-icon {
+            display: inline-block;
+            width: 16px;
+            text-align: center;
+            color: var(--vscode-descriptionForeground);
+            font-size: 10px;
+            transition: transform 0.2s ease;
+        }
+        
+        .folder-content {
+            margin-left: 0;
+            padding-left: 0;
+            display: block;
+        }
+        
+        .folder-content.collapsed {
+            display: none;
+        }
+        
+        .folder-header .toggle-icon {
+            transform: rotate(0deg);
+        }
+        
+        .folder-header.collapsed .toggle-icon {
+            transform: rotate(-90deg);
         }
         
         .stats {
@@ -522,6 +760,7 @@ function getWebviewContent(rootPath, treeData, includeHidden, showIcons, panel) 
             background-color: var(--vscode-editor-inactiveSelectionBackground);
             border-radius: 4px;
             word-break: break-all;
+            font-family: 'RobotoRegular', var(--vscode-font-family);
         }
         
         .stats-grid {
@@ -548,6 +787,7 @@ function getWebviewContent(rootPath, treeData, includeHidden, showIcons, panel) 
             font-size: 0.9em;
             color: var(--vscode-descriptionForeground);
             text-align: center;
+            font-family: 'RobotoRegular', var(--vscode-font-family);
         }
         
         .footer a {
@@ -583,6 +823,7 @@ function getWebviewContent(rootPath, treeData, includeHidden, showIcons, panel) 
             background-color: var(--vscode-infoBackground);
             color: var(--vscode-infoForeground);
             border-radius: 4px;
+            font-family: 'RobotoRegular', var(--vscode-font-family);
         }
         
         pre {
@@ -601,6 +842,8 @@ function getWebviewContent(rootPath, treeData, includeHidden, showIcons, panel) 
                 <button onclick="toggleIcons()" id="toggleIconsBtn" class="${showIcons ? 'active' : ''}" title="${showIcons ? 'Ocultar iconos' : 'Mostrar iconos'}">
                     ${showIcons ? 'Ocultar iconos' : 'Mostrar iconos'}
                 </button>
+                <button onclick="expandAll()" title="Expandir todas las carpetas">Expandir todo</button>
+                <button onclick="collapseAll()" title="Colapsar todas las carpetas">Colapsar todo</button>
                 <button onclick="copyToClipboard()" title="Copiar al portapapeles">Copiar</button>
                 <button onclick="exportToFile()" title="Exportar a archivo">Exportar</button>
             </div>
@@ -712,7 +955,6 @@ function getWebviewContent(rootPath, treeData, includeHidden, showIcons, panel) 
         
         function donate() {
             vscode.postMessage({ command: 'donate' });
-            vscode.commands.executeCommand('tree-generator.donate');
         }
         
         function showLoading(show) {
@@ -752,6 +994,43 @@ function getWebviewContent(rootPath, treeData, includeHidden, showIcons, panel) 
                 includeHidden: includeHidden,
                 maxDepth: maxDepth || undefined,
                 showIcons: currentShowIcons
+            });
+        }
+        
+        // Función para colapsar/expandir carpetas
+        function toggleFolder(contentId, element) {
+            const content = document.getElementById(contentId);
+            if (content) {
+                content.classList.toggle('collapsed');
+                element.classList.toggle('collapsed');
+            }
+        }
+        
+        // Función para expandir todas las carpetas
+        function expandAll() {
+            const contents = document.querySelectorAll('.folder-content');
+            const headers = document.querySelectorAll('.folder-header');
+            
+            contents.forEach(content => {
+                content.classList.remove('collapsed');
+            });
+            
+            headers.forEach(header => {
+                header.classList.remove('collapsed');
+            });
+        }
+        
+        // Función para colapsar todas las carpetas
+        function collapseAll() {
+            const contents = document.querySelectorAll('.folder-content');
+            const headers = document.querySelectorAll('.folder-header');
+            
+            contents.forEach(content => {
+                content.classList.add('collapsed');
+            });
+            
+            headers.forEach(header => {
+                header.classList.add('collapsed');
             });
         }
         

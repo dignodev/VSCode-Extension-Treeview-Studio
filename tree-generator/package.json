@@ -2,7 +2,7 @@
   "name": "tree-generator",
   "displayName": "Tree Generator",
   "description": "Genera un árbol de directorios del proyecto en una interfaz visual interactiva",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "publisher": "dignodev",
   "engines": {
     "vscode": "^1.85.0"
@@ -24,7 +24,9 @@
   },
   "resources": {
     "fonts": [
-      "resources/fonts/Roboto-Bold.ttf"
+      "resources/fonts/Roboto-Bold.ttf",
+      "resources/fonts/Roboto-Regular.ttf",
+      "resources/fonts/UbuntuMono-Regular.ttf"
     ]
   },
   "contributes": {

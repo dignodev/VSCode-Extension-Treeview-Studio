@@ -3,6 +3,7 @@
   "displayName": "Tree Generator",
   "description": "Genera un árbol de directorios del proyecto en una interfaz visual interactiva",
   "version": "0.1.0",
+  "publisher": "dignodev",
   "engines": {
     "vscode": "^1.85.0"
   },

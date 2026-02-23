@@ -76,7 +76,7 @@ export function activate(context: vscode.ExtensionContext) {
             );
 
             // Enviar los datos al WebView
-            panel.webview.html = getWebviewContent(rootPath, treeData, includeHidden === 'Sí', true);
+            panel.webview.html = getWebviewContent(rootPath, treeData, includeHidden === 'Sí', true, panel);
 
             // Manejar mensajes del WebView
             panel.webview.onDidReceiveMessage(
@@ -260,7 +260,7 @@ async function generateDirectoryTree(rootPath: string, options: { includeHidden:
         .replace(/'/g, '&#39;');
     
     // Para el HTML, usamos la configuración de fuente con RobotoBold por defecto
-    const htmlTree = `<pre style="font-family: 'RobotoBold', '${fontConfig.fontFamily}'; font-size: ${fontConfig.fontSize}px; line-height: 1.6; margin: 0; white-space: pre;">${escapedTree}</pre>`;
+    const htmlTree = `<pre style="font-family: 'RobotoBold !important', '${fontConfig.fontFamily}'; font-size: ${fontConfig.fontSize}px; margin: 0; white-space: pre;">${escapedTree}</pre>`;
     
     return { 
         text: visualTree, 
@@ -341,11 +341,11 @@ function getFileIcon(fileName: string): string {
     return iconMap[ext] || '📄';
 }
 
-function getWebviewContent(rootPath: string, treeData: { text: string, html: string }, includeHidden: boolean, showIcons: boolean): string {
+function getWebviewContent(rootPath: string, treeData: { text: string, html: string }, includeHidden: boolean, showIcons: boolean, panel: vscode.WebviewPanel): string {
     const escapedRootPath = rootPath.replace(/\\/g, '\\\\');
     const fontConfig = getFontConfig();
-    const extensionUri = vscode.extensions.getExtension('dignodev.tree-generator')?.extensionUri;
-    const fontUrl = extensionUri ? extensionUri.with({ scheme: 'vscode-resource' }).toString() + '/resources/fonts/Roboto-Bold.ttf' : '';
+    const fontUri = vscode.Uri.joinPath(vscode.extensions.getExtension('dignodev.tree-generator')!.extensionUri, 'resources', 'fonts', 'Roboto-Bold.ttf');
+    const fontUrl = panel.webview.asWebviewUri(fontUri).toString();
     
     return `<!DOCTYPE html>
 <html lang="es">
@@ -466,7 +466,6 @@ function getWebviewContent(rootPath: string, treeData: { text: string, html: str
         .tree-container {
             font-family: 'RobotoBold', '${fontConfig.fontFamily}';
             font-size: ${fontConfig.fontSize}px;
-            line-height: 1.6;
             background-color: var(--vscode-editor-background);
             padding: 15px;
             border-radius: 4px;

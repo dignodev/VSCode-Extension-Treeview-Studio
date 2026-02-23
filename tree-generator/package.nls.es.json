@@ -1,0 +1,7 @@
+{
+    "commands.generateTree": "Generar Árbol de Directorios",
+    "commands.donate": "Apoyar Tree Generator ☕",
+    "commands.language": "Cambiar Idioma",
+    "config.fontFamily": "Familia de fuente para el árbol de directorios",
+    "config.fontSize": "Tamaño de fuente para el árbol"
+}

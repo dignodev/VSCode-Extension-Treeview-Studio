@@ -34,17 +34,17 @@
     "commands": [
       {
         "command": "tree-generator.generateTree",
-        "title": "Generar Árbol de Directorios",
+        "title": "%commands.generateTree%",
         "category": "Tree Generator"
       },
       {
         "command": "tree-generator.donate",
-        "title": "Apoyar Tree Generator ☕",
+        "title": "%commands.donate%",
         "category": "Tree Generator"
       },
       {
         "command": "tree-generator.changeLanguage",
-        "title": "Cambiar Idioma / Change Language",
+        "title": "%commands.language%",
         "category": "Tree Generator"
       }
     ],
@@ -63,12 +63,12 @@
         "tree-generator.fontFamily": {
           "type": "string",
           "default": "Consolas, Monaco, Courier New, monospace",
-          "description": "Familia de fuente para el árbol de directorios"
+          "description": "%config.fontFamily%"
         },
         "tree-generator.fontSize": {
           "type": "number",
           "default": 13,
-          "description": "Tamaño de fuente para el árbol"
+          "description": "%config.fontSize%"
         }
       }
     }

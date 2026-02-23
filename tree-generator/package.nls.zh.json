@@ -1,0 +1,7 @@
+{
+    "commands.generateTree": "生成目录树",
+    "commands.donate": "支持 Tree Generator ☕",
+    "commands.language": "更改语言",
+    "config.fontFamily": "目录树的字体家族",
+    "config.fontSize": "树的字体大小"
+}

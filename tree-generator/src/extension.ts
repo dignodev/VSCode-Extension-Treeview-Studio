@@ -37,7 +37,7 @@ export function activate(context: vscode.ExtensionContext) {
             
             if (selected) {
                 await i18nService.setLanguage(selected.code);
-                vscode.window.showInformationMessage(i18nService.t('messages.languageChanged'));
+                // El mensaje de confirmación y recarga se maneja en i18nService.setLanguage
             }
         })
     );

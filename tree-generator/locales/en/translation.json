@@ -19,7 +19,10 @@
     "donationPrompt": "Enjoying Tree Generator? If you want to support development, consider buying me a coffee ☕",
     "donateNow": "Support now",
     "later": "Later",
-    "languageChanged": "Language changed successfully"
+    "languageChanged": "Language changed successfully",
+    "reloadNow": "Reload now",
+    "reloadRequired": "Language change requires reloading the window to update the menus",
+    "reloadPrompt": "Do you want to reload now?"
   },
   "options": {
     "includeHidden": "Include hidden files (like .git, node_modules)?",

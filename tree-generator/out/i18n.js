@@ -38,6 +38,7 @@ const vscode = __importStar(require("vscode"));
 class I18nService {
     constructor(context) {
         this.translations = new Map();
+        this.packageTranslations = new Map();
         this.fallbackLanguage = 'en';
         this.context = context;
         // Cargar idioma guardado o detectar de VSCode
@@ -47,6 +48,38 @@ class I18nService {
         this.currentLanguage = savedLanguage || this.getSupportedLanguage(vscodeLanguage) || this.fallbackLanguage;
         // Cargar traducciones
         this.loadTranslations();
+        this.loadPackageTranslations();
+    }
+    /**
+     * Carga las traducciones del package.nls.json
+     */
+    async loadPackageTranslations() {
+        const languages = ['en', 'es', 'fr', 'de', 'zh', 'ja'];
+        for (const lang of languages) {
+            try {
+                // Para el inglés, el archivo es package.nls.json
+                // Para otros idiomas, es package.nls.{lang}.json
+                const fileName = lang === 'en' ? 'package.nls.json' : `package.nls.${lang}.json`;
+                const uri = vscode.Uri.joinPath(this.context.extensionUri, fileName);
+                try {
+                    const fileContent = await vscode.workspace.fs.readFile(uri);
+                    const translations = JSON.parse(fileContent.toString());
+                    this.packageTranslations.set(lang, translations);
+                }
+                catch (error) {
+                    // Si no existe el archivo, intentar con la ruta alternativa
+                    if (lang !== 'en') {
+                        const altUri = vscode.Uri.joinPath(this.context.extensionUri, 'package.nls.json');
+                        const fileContent = await vscode.workspace.fs.readFile(altUri);
+                        const translations = JSON.parse(fileContent.toString());
+                        this.packageTranslations.set(lang, translations);
+                    }
+                }
+            }
+            catch (error) {
+                console.error(`Error loading package translations for ${lang}:`, error);
+            }
+        }
     }
     /**
      * Obtiene el idioma más cercano soportado
@@ -82,7 +115,44 @@ class I18nService {
         }
     }
     /**
-     * Obtiene una traducción por clave
+     * Obtiene una traducción para el package.json
+     */
+    localize(key, ...args) {
+        // Buscar en package translations del idioma actual
+        let translation = this.getPackageTranslation(this.currentLanguage, key);
+        // Si no existe, buscar en inglés
+        if (!translation) {
+            translation = this.getPackageTranslation(this.fallbackLanguage, key);
+        }
+        // Si aún no existe, devolver la clave
+        if (!translation) {
+            return key;
+        }
+        // Reemplazar argumentos si hay
+        if (args.length > 0) {
+            return this.formatString(translation, args);
+        }
+        return translation;
+    }
+    /**
+     * Obtiene una traducción del package
+     */
+    getPackageTranslation(lang, key) {
+        const translations = this.packageTranslations.get(lang);
+        if (!translations)
+            return undefined;
+        return translations[key];
+    }
+    /**
+     * Formatea un string con argumentos
+     */
+    formatString(str, args) {
+        return str.replace(/{(\d+)}/g, (match, index) => {
+            return typeof args[index] !== 'undefined' ? args[index] : match;
+        });
+    }
+    /**
+     * Obtiene una traducción por clave (para el UI)
      */
     t(key, params) {
         // Buscar en el idioma actual
@@ -138,6 +208,12 @@ class I18nService {
             await this.context.globalState.update('tree-generator.language', supportedLang);
             // Notificar cambio de idioma
             vscode.commands.executeCommand('tree-generator.languageChanged');
+            // Forzar recarga de la UI de VSCode para actualizar los comandos
+            vscode.window.showInformationMessage(this.t('messages.languageChanged'), this.t('messages.reloadNow'), this.t('messages.later')).then(selection => {
+                if (selection === this.t('messages.reloadNow')) {
+                    vscode.commands.executeCommand('workbench.action.reloadWindow');
+                }
+            });
         }
     }
     /**

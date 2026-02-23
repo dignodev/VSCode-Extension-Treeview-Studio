@@ -16,10 +16,13 @@
     "selectionCopied": "Selección copiada al portapapeles",
     "noSelection": "No hay texto seleccionado",
     "saved": "Árbol guardado en {{path}}",
-    "donationPrompt": "¿Disfrutando Tree Generator? Si quieres apoyar el desarrollo, considera invitarme a un café ☕",
+    "donationPrompt": "¿Disfrutas de Tree Generator? Si quieres apoyar el desarrollo, considera invitarme un café ☕",
     "donateNow": "Apoyar ahora",
-    "later": "Más tarde",
-    "languageChanged": "Idioma cambiado correctamente"
+    "later": "Después",
+    "languageChanged": "Idioma cambiado correctamente",
+    "reloadNow": "Recargar ahora",
+    "reloadRequired": "El cambio de idioma requiere recargar la ventana para actualizar los menús",
+    "reloadPrompt": "¿Quieres recargar ahora?"
   },
   "options": {
     "includeHidden": "¿Incluir archivos ocultos (como .git, node_modules)?",
@@ -27,7 +30,7 @@
     "no": "No",
     "maxDepth": "Profundidad máxima (dejar vacío para sin límite)",
     "maxDepthPlaceholder": "Ejemplo: 3",
-    "invalidNumber": "Por favor, ingresa un número válido"
+    "invalidNumber": "Por favor, introduce un número válido"
   },
   "ui": {
     "title": "Árbol de Directorios: {{path}}",
@@ -40,7 +43,7 @@
     "copySelection": "Copiar selección",
     "export": "Exportar",
     "apply": "Aplicar cambios",
-    "reset": "Restablecer",
+    "reset": "Reiniciar",
     "language": "Idioma",
     "selectLanguage": "Seleccionar idioma"
   },

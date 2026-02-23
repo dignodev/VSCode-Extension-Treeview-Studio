@@ -1,0 +1,7 @@
+{
+    "commands.generateTree": "Verzeichnisbaum generieren",
+    "commands.donate": "Tree Generator unterstützen ☕",
+    "commands.language": "Sprache ändern",
+    "config.fontFamily": "Schriftart für den Verzeichnisbaum",
+    "config.fontSize": "Schriftgröße für den Baum"
+}

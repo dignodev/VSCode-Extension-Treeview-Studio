@@ -550,11 +550,17 @@ function getWebviewContent(rootPath, treeData, includeHidden, showIcons, panel, 
         
         .header {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            flex-direction: column;
             margin-bottom: 20px;
             padding-bottom: 10px;
             border-bottom: 1px solid var(--vscode-panel-border);
+        }
+        
+        .title-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
         }
         
         .title {
@@ -563,13 +569,14 @@ function getWebviewContent(rootPath, treeData, includeHidden, showIcons, panel, 
             font-family: 'RobotoBold', var(--vscode-font-family);
         }
         
-        .controls {
+        .controls-row {
             display: flex;
             gap: 8px;
             flex-wrap: wrap;
+            padding: 5px 0;
         }
         
-        .controls button {
+        .controls-row button {
             background-color: var(--vscode-button-background);
             color: var(--vscode-button-foreground);
             border: none;
@@ -581,11 +588,11 @@ function getWebviewContent(rootPath, treeData, includeHidden, showIcons, panel, 
             font-family: 'RobotoRegular', var(--vscode-font-family);
         }
         
-        .controls button:hover {
+        .controls-row button:hover {
             background-color: var(--vscode-button-hoverBackground);
         }
 
-        .controls button.active {
+        .controls-row button.active {
             background-color: var(--vscode-button-secondaryBackground);
             color: var(--vscode-button-secondaryForeground);
             outline: 2px solid var(--vscode-focusBorder);
@@ -855,8 +862,11 @@ function getWebviewContent(rootPath, treeData, includeHidden, showIcons, panel, 
 <body>
     <div class="container">
         <div class="header">
-            <div class="title">Árbol de Directorios: ${path.basename(rootPath)}</div>
-            <div class="controls">
+            <div class="title-row">
+                <div class="title">Árbol de Directorios: ${path.basename(rootPath)}</div>
+            </div>
+            
+            <div class="controls-row">
                 <button onclick="toggleOptions()" title="Mostrar/ocultar opciones">Opciones</button>
                 <button onclick="toggleIcons()" id="toggleIconsBtn" class="${showIcons ? 'active' : ''}" title="${showIcons ? 'Ocultar iconos' : 'Mostrar iconos'}">
                     ${showIcons ? 'Ocultar iconos' : 'Mostrar iconos'}

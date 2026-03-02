@@ -82,7 +82,15 @@ function activate(context) {
             // Obtener la ruta del directorio seleccionado
             let rootPath;
             if (uri && uri.fsPath) {
-                const stat = fs.statSync(uri.fsPath);
+                let stat;
+                try {
+                    stat = fs.statSync(uri.fsPath);
+                }
+                catch (error) {
+                    console.error('[Tree Generator] Error getting file stats:', error);
+                    vscode.window.showErrorMessage(i18nService.t('messages.error', { error: 'Cannot access path: ' + uri.fsPath }));
+                    return;
+                }
                 if (stat.isDirectory()) {
                     rootPath = uri.fsPath;
                 }
@@ -140,6 +148,13 @@ function activate(context) {
                         const newShowIcons = message.showIcons === true || message.showIcons === 'true';
                         // Limpiar la ruta
                         const cleanRootPath = message.rootPath.replace(/\t/g, '').trim();
+                        // Log para validar la recepción del mensaje
+                        console.log('[Tree Generator] Refresh requested:', {
+                            rootPath: cleanRootPath,
+                            includeHidden: newIncludeHidden,
+                            maxDepth: newMaxDepth,
+                            showIcons: newShowIcons
+                        });
                         vscode.window.showInformationMessage(i18nService.t('messages.regenerating'));
                         const newTreeData = await generateDirectoryTree(cleanRootPath, {
                             includeHidden: newIncludeHidden,
@@ -205,8 +220,17 @@ async function getMaxDepth() {
         prompt: i18nService.t('options.maxDepth'),
         placeHolder: i18nService.t('options.maxDepthPlaceholder'),
         validateInput: (value) => {
-            if (value && isNaN(parseInt(value))) {
-                return i18nService.t('options.invalidNumber');
+            if (value) {
+                const num = parseInt(value);
+                if (isNaN(num)) {
+                    return i18nService.t('options.invalidNumber');
+                }
+                if (num < 1) {
+                    return 'Depth must be at least 1';
+                }
+                if (num > 50) {
+                    return 'Depth cannot exceed 50 levels';
+                }
             }
             return null;
         }
@@ -345,12 +369,12 @@ function generateCollapsibleHTML(rootPath, options, fontConfig, i18n) {
                     // Determinar el prefijo para el contenido de la carpeta
                     const contentPrefix = prefix + (isLastItem ? '    ' : '│   ');
                     html += `
-                        <div class="tree-item folder" data-depth="${depth}" data-path="${item.path}">
-                            <div class="tree-line folder-header" onclick="toggleFolder('${contentId}', this)" data-fullpath="${item.path}">
+                        <div class="tree-item folder" data-depth="${depth}" data-path="${escapeHtml(item.path)}">
+                            <div class="tree-line folder-header" onclick="toggleFolder('${contentId}', this)" data-fullpath="${escapeHtml(item.path)}">
                                 <span class="prefix">${visualPrefix}</span>
                                 <span class="connector">${connector}</span>
                                 <span class="folder-icon ${options.showIcons ? 'visible' : 'hidden'}">${dirIcon}</span>
-                                <span class="folder-name">${item.name}/</span>
+                                <span class="folder-name">${escapeHtml(item.name)}/</span>
                                 <span class="toggle-icon">▼</span>
                             </div>
                             <div class="folder-content" id="${contentId}">
@@ -362,12 +386,12 @@ function generateCollapsibleHTML(rootPath, options, fontConfig, i18n) {
                 else {
                     const icon = options.showIcons ? getFileIcon(item.name) + ' ' : '';
                     html += `
-                        <div class="tree-item file" data-depth="${depth}" data-path="${item.path}">
-                            <div class="tree-line" data-fullpath="${item.path}">
+                        <div class="tree-item file" data-depth="${depth}" data-path="${escapeHtml(item.path)}">
+                            <div class="tree-line" data-fullpath="${escapeHtml(item.path)}">
                                 <span class="prefix">${visualPrefix}</span>
                                 <span class="connector">${connector}</span>
                                 <span class="file-icon ${options.showIcons ? 'visible' : 'hidden'}">${icon}</span>
-                                <span class="file-name">${item.name}</span>
+                                <span class="file-name">${escapeHtml(item.name)}</span>
                             </div>
                         </div>
                     `;
@@ -528,6 +552,19 @@ function getFileIcon(fileName) {
     if (baseName === 'tsconfig.json')
         return '⚙️';
     return iconMap[ext] || '📄';
+}
+// Función para escapar HTML y prevenir XSS
+function escapeHtml(str) {
+    // Log para validar que la función está siendo utilizada
+    if (str && (str.includes('<') || str.includes('>') || str.includes('"'))) {
+        console.log('[Tree Generator] XSS prevention: Escaped special characters in:', str.substring(0, 50));
+    }
+    return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
 }
 function getWebviewContent(rootPath, treeData, includeHidden, showIcons, panel, context, fontUris, i18n) {
     const escapedRootPath = rootPath.replace(/\\/g, '\\\\');

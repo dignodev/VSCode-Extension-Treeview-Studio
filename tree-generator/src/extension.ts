@@ -189,7 +189,11 @@ export function activate(context: vscode.ExtensionContext) {
                             vscode.window.showInformationMessage(i18nService.t('messages.copied'));
                             break;
                         case 'export':
-                            console.log('Export command received, text length:', message.text?.length || 0);
+                            console.log('Export command received');
+                            console.log('Export - Text is undefined:', message.text === undefined);
+                            console.log('Export - Text is empty:', message.text === '');
+                            console.log('Export - Text length:', message.text?.length || 0);
+                            console.log('Export - Full text:', message.text);
                             const uri = await vscode.window.showSaveDialog({
                                 filters: { 'Text files': ['txt'] },
                                 defaultUri: vscode.Uri.file(path.join(rootPath, 'arbol.txt'))
@@ -1315,8 +1319,9 @@ function getWebviewContent(
         
         // Función para generar texto del árbol basado en el estado actual del DOM
         function generateTreeTextFromDOM() {
-            const rootElement = document.querySelector('.collapsible-tree');
+            const rootElement = document.querySelector('.tree-item.root');
             console.log('generateTreeTextFromDOM - Root element found:', !!rootElement);
+            console.log('generateTreeTextFromDOM - Root element classes:', rootElement?.className);
             if (!rootElement) {
                 console.log('generateTreeTextFromDOM - No root element found');
                 return '';
@@ -1325,6 +1330,7 @@ function getWebviewContent(
             let result = '';
             
             function processElement(element, prefix = '', isLast = true) {
+                console.log('processElement - Element:', element);
                 console.log('processElement - Element classes:', element.className);
                 // Obtener el tipo de elemento
                 const isFolder = element.classList.contains('folder');

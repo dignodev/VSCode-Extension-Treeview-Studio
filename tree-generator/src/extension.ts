@@ -142,6 +142,7 @@ export function activate(context: vscode.ExtensionContext) {
             };
 
             // Enviar los datos al WebView
+            const taskbarIconUris = getTaskbarIconURIs(panel.webview, context);
             panel.webview.html = getWebviewContent(
                 rootPath, 
                 treeData, 
@@ -150,7 +151,8 @@ export function activate(context: vscode.ExtensionContext) {
                 panel,
                 context,
                 fontUris,
-                i18nService
+                i18nService,
+                taskbarIconUris
             );
 
             // Manejar mensajes del WebView
@@ -782,6 +784,39 @@ function getFolderIconSVG(webview: vscode.Webview, context: vscode.ExtensionCont
     return `<img src="${resourceUri}" class="folder-icon-svg" alt="">`;
 }
 
+// Función para obtener los iconos de la barra de tareas (taskbar-icons)
+function getTaskbarIconURIs(webview: vscode.Webview, context: vscode.ExtensionContext): { [key: string]: vscode.Uri } {
+    return {
+        settings: webview.asWebviewUri(
+            vscode.Uri.joinPath(context.extensionUri, 'resources', 'icons', 'taskbar-icons', 'settings.svg')
+        ),
+        showEye: webview.asWebviewUri(
+            vscode.Uri.joinPath(context.extensionUri, 'resources', 'icons', 'taskbar-icons', 'show-eye.svg')
+        ),
+        hideEye: webview.asWebviewUri(
+            vscode.Uri.joinPath(context.extensionUri, 'resources', 'icons', 'taskbar-icons', 'hide-eye.svg')
+        ),
+        expandItems: webview.asWebviewUri(
+            vscode.Uri.joinPath(context.extensionUri, 'resources', 'icons', 'taskbar-icons', 'expand-items.svg')
+        ),
+        collapseItems: webview.asWebviewUri(
+            vscode.Uri.joinPath(context.extensionUri, 'resources', 'icons', 'taskbar-icons', 'collapse-items.svg')
+        ),
+        copy: webview.asWebviewUri(
+            vscode.Uri.joinPath(context.extensionUri, 'resources', 'icons', 'taskbar-icons', 'copy.svg')
+        ),
+        copyCheck: webview.asWebviewUri(
+            vscode.Uri.joinPath(context.extensionUri, 'resources', 'icons', 'taskbar-icons', 'copy-check.svg')
+        ),
+        saveFloppy: webview.asWebviewUri(
+            vscode.Uri.joinPath(context.extensionUri, 'resources', 'icons', 'taskbar-icons', 'save-floppy.svg')
+        ),
+        languageSquare: webview.asWebviewUri(
+            vscode.Uri.joinPath(context.extensionUri, 'resources', 'icons', 'taskbar-icons', 'language-square.svg')
+        )
+    };
+}
+
 // Función para escapar HTML y prevenir XSS
 function escapeHtml(str: string): string {
     // Log para validar que la función está siendo utilizada
@@ -804,7 +839,8 @@ function getWebviewContent(
     panel: vscode.WebviewPanel,
     context: vscode.ExtensionContext,
     fontUris: { robotoBold: vscode.Uri, robotoRegular: vscode.Uri, ubuntuMono: vscode.Uri },
-    i18n: I18nService
+    i18n: I18nService,
+    taskbarIconUris: { [key: string]: vscode.Uri }
 ): string {
     const escapedRootPath = rootPath.replace(/\\/g, '\\\\');
     const fontConfig = getFontConfig();
@@ -927,6 +963,12 @@ function getWebviewContent(
             color: #ffffff;
             outline: 2px solid var(--vscode-focusBorder);
             outline-offset: 1px;
+        }
+        
+        .sidebar-icon {
+            width: 20px;
+            height: 20px;
+            filter: invert(1) brightness(2);
         }
         
         .header {
@@ -1436,16 +1478,16 @@ function getWebviewContent(
             </div>
             
             <div class="sidebar" role="toolbar" aria-label="Tree controls">
-                <button onclick="toggleOptions()" title="${i18n.t('ui.options')}" aria-label="${i18n.t('ui.options')}">⚙️</button>
+                <button onclick="toggleOptions()" title="${i18n.t('ui.options')}" aria-label="${i18n.t('ui.options')}"><img src="${taskbarIconUris.settings}" class="sidebar-icon" alt=""></button>
                 <button onclick="toggleIcons()" id="toggleIconsBtnSidebar" class="${showIcons ? 'active' : ''}" title="${showIcons ? i18n.t('ui.hideIcons') : i18n.t('ui.showIcons')}" aria-label="${showIcons ? i18n.t('ui.hideIcons') : i18n.t('ui.showIcons')}">
-                    ${showIcons ? '👁️' : '👁️‍🗨️'}
+                    <img src="${showIcons ? taskbarIconUris.hideEye : taskbarIconUris.showEye}" class="sidebar-icon" alt="">
                 </button>
-                <button onclick="expandAll()" title="${i18n.t('ui.expandAll')}" aria-label="${i18n.t('ui.expandAll')}">📂</button>
-                <button onclick="collapseAll()" title="${i18n.t('ui.collapseAll')}" aria-label="${i18n.t('ui.collapseAll')}">📁</button>
-                <button onclick="copyVisibleTree()" title="${i18n.t('ui.copyVisible')}" aria-label="${i18n.t('ui.copyVisible')}">📋</button>
-                <button onclick="copySelection()" title="${i18n.t('ui.copySelection')}" aria-label="${i18n.t('ui.copySelection')}">✂️</button>
-                <button onclick="exportToFile()" title="${i18n.t('ui.export')}" aria-label="${i18n.t('ui.export')}">💾</button>
-                <button onclick="changeLanguage()" title="${i18n.t('ui.language')}" aria-label="${i18n.t('ui.language')}">🌐</button>
+                <button onclick="expandAll()" title="${i18n.t('ui.expandAll')}" aria-label="${i18n.t('ui.expandAll')}"><img src="${taskbarIconUris.expandItems}" class="sidebar-icon" alt=""></button>
+                <button onclick="collapseAll()" title="${i18n.t('ui.collapseAll')}" aria-label="${i18n.t('ui.collapseAll')}"><img src="${taskbarIconUris.collapseItems}" class="sidebar-icon" alt=""></button>
+                <button onclick="copyVisibleTree()" title="${i18n.t('ui.copyVisible')}" aria-label="${i18n.t('ui.copyVisible')}"><img src="${taskbarIconUris.copy}" class="sidebar-icon" alt=""></button>
+                <button onclick="copySelection()" title="${i18n.t('ui.copySelection')}" aria-label="${i18n.t('ui.copySelection')}"><img src="${taskbarIconUris.copyCheck}" class="sidebar-icon" alt=""></button>
+                <button onclick="exportToFile()" title="${i18n.t('ui.export')}" aria-label="${i18n.t('ui.export')}"><img src="${taskbarIconUris.saveFloppy}" class="sidebar-icon" alt=""></button>
+                <button onclick="changeLanguage()" title="${i18n.t('ui.language')}" aria-label="${i18n.t('ui.language')}"><img src="${taskbarIconUris.languageSquare}" class="sidebar-icon" alt=""></button>
             </div>
         </div>
         

@@ -1006,9 +1006,9 @@ function getWebviewContent(rootPath, treeData, includeHidden, showIcons, panel, 
         }
         
         .stats-container {
-            display: flex;
-            gap: 20px;
-            align-items: flex-start;
+            display: block;
+            width: 100%;
+            margin-top: 15px;
         }
         
         .stats-grid {

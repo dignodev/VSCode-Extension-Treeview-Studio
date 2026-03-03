@@ -35,17 +35,20 @@
       {
         "command": "tree-generator.generateTree",
         "title": "%commands.generateTree%",
-        "category": "Tree Generator"
+        "category": "Tree Generator",
+        "icon": "resources/icons/taskbar-icons/save-floppy.svg"
       },
       {
         "command": "tree-generator.donate",
         "title": "%commands.donate%",
-        "category": "Tree Generator"
+        "category": "Tree Generator",
+        "icon": "resources/icons/taskbar-icons/copy-check.svg"
       },
       {
         "command": "tree-generator.changeLanguage",
         "title": "%commands.language%",
-        "category": "Tree Generator"
+        "category": "Tree Generator",
+        "icon": "resources/icons/taskbar-icons/language-square.svg"
       }
     ],
     "menus": {

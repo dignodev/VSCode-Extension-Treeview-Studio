@@ -605,7 +605,19 @@ function getFileIconSVG(fileName, webview, context) {
         '.bmp': 'picture',
         '.svg': 'picture',
         '.md': 'file-txt',
-        '.mdx': 'file-txt'
+        '.mdx': 'file-txt',
+        // Adobe Creative Suite
+        '.psd': 'file-adobe-photoshop',
+        '.ai': 'file-adobe-illustrator',
+        '.xd': 'file-adobe-xd',
+        '.ae': 'file-adobe-aftereffects',
+        // Parquet
+        '.parquet': 'file-parquet',
+        // Additional image formats (camera raw files)
+        '.heic': 'file-image',
+        '.raw': 'file-image', // Camera raw formats
+        '.tiff': 'file-image',
+        '.tif': 'file-image'
     };
     // Mapeo de colores por tipo de archivo
     const colorMap = {
@@ -653,7 +665,18 @@ function getFileIconSVG(fileName, webview, context) {
         'env': 'env', // Yellow
         'settings': 'settings', // Blue
         'picture': 'picture', // Image purple
-        'default': 'default' // Gray for unknown
+        'default': 'default', // Gray for unknown
+        // Adobe Creative Suite
+        '.psd': 'picture',
+        '.ai': 'picture',
+        '.xd': 'picture',
+        '.ae': 'picture',
+        // Parquet
+        '.parquet': 'default',
+        // Additional image formats (camera raw files)
+        '.heic': 'picture',
+        '.tiff': 'picture',
+        '.tif': 'picture'
     };
     // Archivos especiales
     let svgName;

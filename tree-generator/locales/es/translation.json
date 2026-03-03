@@ -34,6 +34,12 @@
   },
   "ui": {
     "title": "Árbol de Directorios: {{path}}",
+    "search": "Buscar",
+    "searchPlaceholder": "Filtrar archivos y carpetas...",
+    "clearSearch": "Limpiar",
+    "searchMatch": "coincidencia",
+    "searchMatches": "coincidencias",
+    "noResults": "No se encontraron resultados",
     "options": "Opciones",
     "hideIcons": "Ocultar iconos",
     "showIcons": "Mostrar iconos",

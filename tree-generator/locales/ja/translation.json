@@ -42,7 +42,13 @@
     "apply": "変更を適用",
     "reset": "リセット",
     "language": "言語",
-    "selectLanguage": "言語を選択"
+    "selectLanguage": "言語を選択",
+    "search": "検索",
+    "searchPlaceholder": "ファイルとフォルダをフィルター...",
+    "clearSearch": "クリア",
+    "searchMatch": "件",
+    "searchMatches": "件",
+    "noResults": "結果が見つかりません"
   },
   "stats": {
     "path": "パス",

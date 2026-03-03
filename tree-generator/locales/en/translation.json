@@ -34,6 +34,12 @@
   },
   "ui": {
     "title": "Directory Tree: {{path}}",
+    "search": "Search",
+    "searchPlaceholder": "Filter files and folders...",
+    "clearSearch": "Clear",
+    "searchMatch": "match",
+    "searchMatches": "matches",
+    "noResults": "No results found",
     "options": "Options",
     "hideIcons": "Hide icons",
     "showIcons": "Show icons",

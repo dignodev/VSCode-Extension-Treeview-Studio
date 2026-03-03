@@ -42,7 +42,13 @@
     "apply": "Appliquer",
     "reset": "Réinitialiser",
     "language": "Langue",
-    "selectLanguage": "Choisir la langue"
+    "selectLanguage": "Choisir la langue",
+    "search": "Rechercher",
+    "searchPlaceholder": "Filtrer fichiers et dossiers...",
+    "clearSearch": "Effacer",
+    "searchMatch": "résultat",
+    "searchMatches": "résultats",
+    "noResults": "Aucun résultat trouvé"
   },
   "stats": {
     "path": "Chemin",

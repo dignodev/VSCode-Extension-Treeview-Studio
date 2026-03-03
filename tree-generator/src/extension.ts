@@ -653,7 +653,13 @@ function getWebviewContent(
         copyVisible: i18n.t('ui.copyVisible'),
         copySelection: i18n.t('ui.copySelection'),
         export: i18n.t('ui.export'),
-        language: i18n.t('ui.language')
+        language: i18n.t('ui.language'),
+        search: i18n.t('ui.search'),
+        searchPlaceholder: i18n.t('ui.searchPlaceholder'),
+        clearSearch: i18n.t('ui.clearSearch'),
+        searchMatch: i18n.t('ui.searchMatch'),
+        searchMatches: i18n.t('ui.searchMatches'),
+        noResults: i18n.t('ui.noResults')
     };
     
     return `<!DOCTYPE html>
@@ -712,6 +718,53 @@ function getWebviewContent(
             justify-content: space-between;
             align-items: center;
             margin-bottom: 10px;
+        }
+        
+        .search-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        
+        .search-input {
+            flex: 1;
+            background-color: var(--vscode-input-background);
+            color: var(--vscode-input-foreground);
+            border: 1px solid var(--vscode-input-border);
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-size: 13px;
+            font-family: 'RobotoRegular', var(--vscode-font-family);
+        }
+        
+        .search-input:focus {
+            outline: 1px solid var(--vscode-focusBorder);
+        }
+        
+        .search-input::placeholder {
+            color: var(--vscode-input-placeholderForeground);
+        }
+        
+        .clear-search-btn {
+            background: none;
+            border: none;
+            color: var(--vscode-button-secondaryForeground);
+            cursor: pointer;
+            padding: 4px 8px;
+            font-size: 12px;
+        }
+        
+        .clear-search-btn:hover {
+            color: var(--vscode-button-secondaryHoverBackground);
+        }
+        
+        .search-results-count {
+            font-size: 12px;
+            color: var(--vscode-descriptionForeground);
+            padding: 4px 8px;
+            background-color: var(--vscode-editor-inactiveSelectionBackground);
+            border-radius: 4px;
         }
         
         .title {
@@ -1008,6 +1061,19 @@ function getWebviewContent(
             background-color: var(--vscode-editor-selectionBackground);
             color: var(--vscode-editor-selectionForeground);
         }
+        
+        /* Search styles */
+        .search-hidden {
+            display: none !important;
+        }
+        
+        .search-match {
+            background-color: rgba(255, 212, 0, 0.2);
+        }
+        
+        .search-match:hover {
+            background-color: rgba(255, 212, 0, 0.3);
+        }
     </style>
 </head>
 <body>
@@ -1015,6 +1081,12 @@ function getWebviewContent(
         <div class="header">
             <div class="title-row">
                 <div class="title">${i18n.t('ui.title', { path: path.basename(rootPath) })}</div>
+            </div>
+            
+            <div class="search-container">
+                <input type="text" id="searchInput" class="search-input" placeholder="${i18n.t('ui.searchPlaceholder')}" autocomplete="off" aria-label="${i18n.t('ui.search')}" role="searchbox">
+                <button class="clear-search-btn" onclick="clearSearch()" title="${i18n.t('ui.clearSearch')}" aria-label="${i18n.t('ui.clearSearch')}">✕</button>
+                <span class="search-results-count" id="searchResultsCount"></span>
             </div>
             
             <div class="controls-row">
@@ -1348,10 +1420,113 @@ function getWebviewContent(
             }
         });
         
-        // Inicializar valores
+        // Initialize values
         document.addEventListener('DOMContentLoaded', function() {
             updateIconsButton();
+            
+            // Add real-time search listener
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) {
+                searchInput.addEventListener('input', debounce(filterTree, 300));
+                searchInput.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape') {
+                        clearSearch();
+                    }
+                });
+            }
         });
+        
+        // Debounce function to avoid multiple consecutive searches
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+        
+        // Filter tree function
+        function filterTree() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+            const resultsCountEl = document.getElementById('searchResultsCount');
+            
+            if (!searchTerm) {
+                clearSearch();
+                return;
+            }
+            
+            let matchCount = 0;
+            const treeItems = document.querySelectorAll('.tree-item');
+            
+            // First pass: mark all matching items and expand parents
+            treeItems.forEach(item => {
+                const nameEl = item.querySelector('.folder-name, .file-name, .root-name');
+                if (nameEl) {
+                    const name = nameEl.textContent.toLowerCase();
+                    if (name.includes(searchTerm)) {
+                        item.classList.remove('search-hidden');
+                        item.classList.add('search-match');
+                        matchCount++;
+                        
+                        // Expand parent folder if collapsed
+                        let parent = item.parentElement;
+                        while (parent) {
+                            if (parent.classList.contains('folder-content')) {
+                                parent.classList.remove('collapsed');
+                                const header = parent.previousElementSibling;
+                                if (header && header.classList.contains('folder-header')) {
+                                    header.classList.remove('collapsed');
+                                }
+                            }
+                            parent = parent.parentElement;
+                        }
+                    }
+                }
+            });
+            
+            // Second pass: hide non-matching items (but keep parents with matches visible)
+            treeItems.forEach(item => {
+                if (!item.classList.contains('search-match')) {
+                    // Check if this item has any matching descendants
+                    const hasMatchingDescendants = item.querySelector('.search-match');
+                    if (!hasMatchingDescendants) {
+                        item.classList.add('search-hidden');
+                    } else {
+                        // This folder has matching children, keep it visible
+                        item.classList.remove('search-hidden');
+                    }
+                }
+            });
+            
+            // Update results counter
+            const matchText = matchCount === 1 ? translations.searchMatch || 'match' : (translations.searchMatches || 'matches');
+            resultsCountEl.textContent = matchCount > 0 
+                ? matchCount + ' ' + matchText 
+                : translations.noResults || 'No results';
+        }
+        
+        // Clear search function
+        function clearSearch() {
+            const searchInput = document.getElementById('searchInput');
+            const resultsCountEl = document.getElementById('searchResultsCount');
+            
+            if (searchInput) {
+                searchInput.value = '';
+            }
+            
+            if (resultsCountEl) {
+                resultsCountEl.textContent = '';
+            }
+            
+            const treeItems = document.querySelectorAll('.tree-item');
+            treeItems.forEach(item => {
+                item.classList.remove('search-hidden', 'search-match');
+            });
+        }
     </script>
 </body>
 </html>`;

@@ -42,7 +42,13 @@
     "apply": "Anwenden",
     "reset": "Zurücksetzen",
     "language": "Sprache",
-    "selectLanguage": "Sprache auswählen"
+    "selectLanguage": "Sprache auswählen",
+    "search": "Suchen",
+    "searchPlaceholder": "Dateien und Ordner filtern...",
+    "clearSearch": "Löschen",
+    "searchMatch": "Treffer",
+    "searchMatches": "Treffer",
+    "noResults": "Keine Ergebnisse gefunden"
   },
   "stats": {
     "path": "Pfad",

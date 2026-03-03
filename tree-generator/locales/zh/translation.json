@@ -42,7 +42,13 @@
     "apply": "应用更改",
     "reset": "重置",
     "language": "语言",
-    "selectLanguage": "选择语言"
+    "selectLanguage": "选择语言",
+    "search": "搜索",
+    "searchPlaceholder": "过滤文件和文件夹...",
+    "clearSearch": "清除",
+    "searchMatch": "个结果",
+    "searchMatches": "个结果",
+    "noResults": "未找到结果"
   },
   "stats": {
     "path": "路径",

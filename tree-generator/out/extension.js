@@ -634,8 +634,60 @@ function getWebviewContent(rootPath, treeData, includeHidden, showIcons, panel, 
             margin: 0;
         }
         
-        .container {
-            max-width: 100%;
+        .header-content {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .main-content {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 10px;
+            background-color: var(--vscode-editor-inactiveSelectionBackground);
+            border-radius: 6px;
+            flex-shrink: 0;
+        }
+        
+        .sidebar button {
+            background-color: var(--vscode-button-background);
+            color: var(--vscode-button-foreground);
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 16px;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .sidebar button:hover {
+            background-color: var(--vscode-button-hoverBackground);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+        }
+        
+        .sidebar button:active {
+            background-color: var(--vscode-button-background);
+            transform: translateY(0);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar button.active {
+            background-color: var(--vscode-button-secondaryBackground);
+            color: var(--vscode-button-secondaryForeground);
+            outline: 2px solid var(--vscode-focusBorder);
+            outline-offset: 1px;
         }
         
         .header {
@@ -718,10 +770,7 @@ function getWebviewContent(rootPath, treeData, includeHidden, showIcons, panel, 
         }
         
         .controls-row {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            padding: 5px 0;
+            display: none;
         }
         
         .controls-row button {
@@ -825,6 +874,7 @@ function getWebviewContent(rootPath, treeData, includeHidden, showIcons, panel, 
             user-select: text;
             -webkit-user-select: text;
             cursor: text;
+            min-height: 300px;
         }
         
         /* Estilos para el árbol colapsable */
@@ -1050,30 +1100,34 @@ function getWebviewContent(rootPath, treeData, includeHidden, showIcons, panel, 
 <body>
     <div class="container">
         <div class="header">
-            <div class="title-row">
-                <div class="title">${i18n.t('ui.title', { path: path.basename(rootPath) })}</div>
-            </div>
-            
-            <div class="search-container">
-                <input type="text" id="searchInput" class="search-input" placeholder="${i18n.t('ui.searchPlaceholder')}" autocomplete="off" aria-label="${i18n.t('ui.search')}" role="searchbox">
-                <button class="clear-search-btn" onclick="clearSearch()" title="${i18n.t('ui.clearSearch')}" aria-label="${i18n.t('ui.clearSearch')}">✕</button>
-                <span class="search-results-count" id="searchResultsCount"></span>
-            </div>
-            
-            <div class="controls-row">
-                <button onclick="toggleOptions()" title="${i18n.t('ui.options')}">${i18n.t('ui.options')}</button>
-                <button onclick="toggleIcons()" id="toggleIconsBtn" class="${showIcons ? 'active' : ''}" title="${showIcons ? i18n.t('ui.hideIcons') : i18n.t('ui.showIcons')}">
-                    ${showIcons ? i18n.t('ui.hideIcons') : i18n.t('ui.showIcons')}
-                </button>
-                <button onclick="expandAll()" title="${i18n.t('ui.expandAll')}">${i18n.t('ui.expandAll')}</button>
-                <button onclick="collapseAll()" title="${i18n.t('ui.collapseAll')}">${i18n.t('ui.collapseAll')}</button>
-                <button onclick="copyVisibleTree()" title="${i18n.t('ui.copyVisible')}">${i18n.t('ui.copyVisible')}</button>
-                <button onclick="copySelection()" title="${i18n.t('ui.copySelection')}">${i18n.t('ui.copySelection')}</button>
-                <button onclick="exportToFile()" title="${i18n.t('ui.export')}">${i18n.t('ui.export')}</button>
-                <button onclick="changeLanguage()" title="${i18n.t('ui.language')}">🌐</button>
+            <div class="header-content">
+                <div class="main-content">
+                    <div class="title-row">
+                        <div class="title">${i18n.t('ui.title', { path: path.basename(rootPath) })}</div>
+                    </div>
+                    
+                    <div class="search-container">
+                        <input type="text" id="searchInput" class="search-input" placeholder="${i18n.t('ui.searchPlaceholder')}" autocomplete="off" aria-label="${i18n.t('ui.search')}" role="searchbox">
+                        <button class="clear-search-btn" onclick="clearSearch()" title="${i18n.t('ui.clearSearch')}" aria-label="${i18n.t('ui.clearSearch')}">✕</button>
+                        <span class="search-results-count" id="searchResultsCount"></span>
+                    </div>
+                </div>
+                
+                <div class="sidebar" role="toolbar" aria-label="Tree controls">
+                    <button onclick="toggleOptions()" title="${i18n.t('ui.options')}" aria-label="${i18n.t('ui.options')}">⚙️</button>
+                    <button onclick="toggleIcons()" id="toggleIconsBtnSidebar" class="${showIcons ? 'active' : ''}" title="${showIcons ? i18n.t('ui.hideIcons') : i18n.t('ui.showIcons')}" aria-label="${showIcons ? i18n.t('ui.hideIcons') : i18n.t('ui.showIcons')}">
+                        ${showIcons ? '👁️' : '👁️‍🗨️'}
+                    </button>
+                    <button onclick="expandAll()" title="${i18n.t('ui.expandAll')}" aria-label="${i18n.t('ui.expandAll')}">📂</button>
+                    <button onclick="collapseAll()" title="${i18n.t('ui.collapseAll')}" aria-label="${i18n.t('ui.collapseAll')}">📁</button>
+                    <button onclick="copyVisibleTree()" title="${i18n.t('ui.copyVisible')}" aria-label="${i18n.t('ui.copyVisible')}">📋</button>
+                    <button onclick="copySelection()" title="${i18n.t('ui.copySelection')}" aria-label="${i18n.t('ui.copySelection')}">✂️</button>
+                    <button onclick="exportToFile()" title="${i18n.t('ui.export')}" aria-label="${i18n.t('ui.export')}">💾</button>
+                    <button onclick="changeLanguage()" title="${i18n.t('ui.language')}" aria-label="${i18n.t('ui.language')}">🌐</button>
+                </div>
             </div>
         </div>
-        
+
         <div class="options-panel" id="optionsPanel">
             <div class="option-group">
                 <label>
@@ -1157,10 +1211,13 @@ function getWebviewContent(rootPath, treeData, includeHidden, showIcons, panel, 
         }
         
         function updateIconsButton() {
-            const btn = document.getElementById('toggleIconsBtn');
-            btn.className = currentShowIcons ? 'active' : '';
-            btn.title = currentShowIcons ? translations.hideIcons : translations.showIcons;
-            btn.innerHTML = currentShowIcons ? translations.hideIcons : translations.showIcons;
+            // Actualizar botón del sidebar (visible con iconos)
+            const sidebarBtn = document.getElementById('toggleIconsBtnSidebar');
+            if (sidebarBtn) {
+                sidebarBtn.className = currentShowIcons ? 'active' : '';
+                sidebarBtn.title = currentShowIcons ? translations.hideIcons : translations.showIcons;
+                sidebarBtn.innerHTML = currentShowIcons ? '👁️' : '👁️‍🗨️';
+            }
         }
         
         function updateHiddenCheckbox() {

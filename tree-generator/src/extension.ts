@@ -643,22 +643,101 @@ function getFileIconSVG(fileName: string, webview: vscode.Webview, context: vsco
         '.java': 'file-java',
         '.swift': 'file-swift',
         '.py': 'python-file',
-        '.php': 'php-file'
+        '.php': 'php-file',
+        '.csv': 'file-csv',
+        '.db': 'file-db',
+        '.html': 'file-html',
+        '.htm': 'file-html',
+        '.js': 'file-javascript',
+        '.jsx': 'file-javascript',
+        '.ts': 'file-javascript',
+        '.tsx': 'file-javascript',
+        '.vue': 'file-vuejs',
+        '.rs': 'file-cargo-crab',
+        '.lock': 'lock',
+        '.png': 'picture',
+        '.jpg': 'picture',
+        '.jpeg': 'picture',
+        '.gif': 'picture',
+        '.webp': 'picture',
+        '.ico': 'picture',
+        '.bmp': 'picture',
+        '.svg': 'picture',
+        '.md': 'file-txt',
+        '.mdx': 'file-txt'
+    };
+    
+    // Mapeo de colores por tipo de archivo
+    const colorMap: { [key: string]: string } = {
+        '.css': 'css',      // Blue
+        '.scss': 'scss',     // Pink
+        '.sass': 'scss',     // Pink
+        '.less': 'css',     // Dark blue
+        '.json': 'json',     // Orange/Yellow
+        '.pdf': 'pdf',      // Red
+        '.txt': 'txt',      // Gray
+        '.zip': 'zip',      // Orange
+        '.tar': 'zip',      // Orange
+        '.gz': 'zip',       // Orange
+        '.sql': 'sql',      // Blue
+        '.java': 'java',     // Red
+        '.swift': 'swift',    // Orange/Red
+        '.py': 'py',       // Python blue
+        '.php': 'php',      // Purple
+        '.csv': 'csv',      // Green
+        '.db': 'db',        // Purple
+        '.html': 'html',    // Orange
+        '.htm': 'html',     // Orange
+        '.js': 'javascript', // Yellow
+        '.jsx': 'javascript', // Yellow
+        '.ts': 'javascript', // Yellow
+        '.tsx': 'javascript', // Yellow
+        '.vue': 'vuejs',    // Green
+        '.lock': 'lock',       // Generic lock - use 'lock' color
+        '.png': 'picture',    // Image purple
+        '.jpg': 'picture',    // Image purple
+        '.jpeg': 'picture',   // Image purple
+        '.gif': 'picture',    // Image purple
+        '.webp': 'picture',   // Image purple
+        '.ico': 'picture',    // Image purple
+        '.bmp': 'picture',    // Image purple
+        '.svg': 'picture',    // Image purple
+        '.md': 'txt',         // Gray
+        '.mdx': 'txt',        // Gray
+        '.rs': 'cargo-crab',  // Rust orange
+        'cargo-crab': 'cargo-crab',  // Rust orange
+        'dockerfile': 'docker', // Docker blue
+        'gitignore': 'git',  // Git orange
+        'package.json': 'npm', // NPM red
+        'package-lock': 'npm', // NPM red
+        'env': 'env',        // Yellow
+        'settings': 'settings',   // Blue
+        'picture': 'picture',     // Image purple
+        'default': 'default'     // Gray for unknown
     };
     
     // Archivos especiales
     let svgName: string | undefined;
+    let iconColor: string = 'default';
     
     if (baseName === 'dockerfile') {
         svgName = 'file-docker';
+        iconColor = colorMap['dockerfile'];
     } else if (baseName === 'gitignore' || baseName === '.gitignore') {
         svgName = 'git';
+        iconColor = colorMap['gitignore'];
     } else if (baseName === 'package.json' || baseName === 'package-lock.json') {
         svgName = 'lock';
+        iconColor = colorMap[baseName === 'package-lock.json' ? 'package-lock' : 'package.json'];
+    } else if (baseName.endsWith('.lock') || baseName === 'lockfile' || baseName === 'Gemfile.lock' || baseName === 'Cargo.lock') {
+        svgName = 'lock';
+        iconColor = colorMap['lock'];
     } else if (baseName === 'env' || baseName === '.env' || baseName === 'makefile' || baseName === 'tsconfig.json') {
         svgName = 'settings';
+        iconColor = colorMap[baseName === 'tsconfig.json' ? 'settings' : 'env'];
     } else {
         svgName = svgMap[ext];
+        iconColor = colorMap[ext] || colorMap['default'];
     }
     
     if (svgName) {
@@ -666,8 +745,7 @@ function getFileIconSVG(fileName: string, webview: vscode.Webview, context: vsco
         const resourceUri = webview.asWebviewUri(
             vscode.Uri.joinPath(context.extensionUri, 'resources', 'icons', `${svgName}.svg`)
         );
-        console.log(`[Tree Generator] SVG URI (asWebviewUri): ${resourceUri}`);
-        return `<img src="${resourceUri}" class="file-icon-svg" alt="">`;
+        return `<img src="${resourceUri}" class="file-icon-svg" alt="" data-color="${iconColor}">`;
     }
     
     return '';
@@ -1095,6 +1173,34 @@ function getWebviewContent(
             vertical-align: middle;
             margin-right: 4px;
         }
+        
+        /* File icon styling */
+        /* Colores específicos por tipo de archivo */
+        .file-icon-svg[data-color="css"] { filter: invert(32%) sepia(98%) saturate(1744%) hue-rotate(218deg) brightness(94%) contrast(101%); }
+        .file-icon-svg[data-color="scss"] { filter: invert(68%) sepia(43%) saturate(303%) hue-rotate(300deg) brightness(93%) contrast(89%); }
+        .file-icon-svg[data-color="json"] { filter: invert(62%) sepia(91%) saturate(494%) hue-rotate(350deg) brightness(99%) contrast(95%); }
+        .file-icon-svg[data-color="pdf"] { filter: invert(35%) sepia(94%) saturate(1046%) hue-rotate(337deg) brightness(93%) contrast(88%); }
+        .file-icon-svg[data-color="txt"] { filter: invert(62%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(93%) contrast(86%); }
+        .file-icon-svg[data-color="zip"] { filter: invert(72%) sepia(64%) saturate(475%) hue-rotate(4deg) brightness(98%) contrast(95%); }
+        .file-icon-svg[data-color="sql"] { filter: invert(51%) sepia(93%) saturate(1066%) hue-rotate(189deg) brightness(97%) contrast(90%); }
+        .file-icon-svg[data-color="java"] { filter: invert(35%) sepia(94%) saturate(1046%) hue-rotate(337deg) brightness(93%) contrast(88%); }
+        .file-icon-svg[data-color="swift"] { filter: invert(46%) sepia(99%) saturate(1436%) hue-rotate(338deg) brightness(99%) contrast(90%); }
+        .file-icon-svg[data-color="py"] { filter: invert(31%) sepia(48%) saturate(1046%) hue-rotate(189deg) brightness(90%) contrast(93%); }
+        .file-icon-svg[data-color="php"] { filter: invert(48%) sepia(36%) saturate(1459%) hue-rotate(232deg) brightness(89%) contrast(88%); }
+        .file-icon-svg[data-color="docker"] { filter: invert(38%) sepia(97%) saturate(1024%) hue-rotate(189deg) brightness(92%) contrast(94%); }
+        .file-icon-svg[data-color="git"] { filter: invert(49%) sepia(92%) saturate(2119%) hue-rotate(329deg) brightness(97%) contrast(97%); }
+        .file-icon-svg[data-color="npm"] { filter: invert(26%) sepia(93%) saturate(1663%) hue-rotate(343deg) brightness(89%) contrast(89%); }
+        .file-icon-svg[data-color="env"] { filter: invert(79%) sepia(95%) saturate(1031%) hue-rotate(5deg) brightness(98%) contrast(96%); }
+        .file-icon-svg[data-color="settings"] { filter: invert(44%) sepia(92%) saturate(1202%) hue-rotate(192deg) brightness(89%) contrast(87%); }
+        .file-icon-svg[data-color="csv"] { filter: invert(46%) sepia(97%) saturate(497%) hue-rotate(72deg) brightness(97%) contrast(88%); }
+        .file-icon-svg[data-color="db"] { filter: invert(29%) sepia(54%) saturate(1699%) hue-rotate(262deg) brightness(91%) contrast(86%); }
+        .file-icon-svg[data-color="html"] { filter: invert(72%) sepia(64%) saturate(475%) hue-rotate(4deg) brightness(98%) contrast(95%); }
+        .file-icon-svg[data-color="javascript"] { filter: invert(95%) sepia(48%) saturate(687%) hue-rotate(355deg) brightness(102%) contrast(98%); }
+        .file-icon-svg[data-color="cargo-crab"] { filter: invert(72%) sepia(64%) saturate(475%) hue-rotate(4deg) brightness(98%) contrast(95%); }
+        .file-icon-svg[data-color="vuejs"] { filter: invert(48%) sepia(93%) saturate(1557%) hue-rotate(72deg) brightness(90%) contrast(85%); }
+        .file-icon-svg[data-color="picture"] { filter: invert(29%) sepia(54%) saturate(1699%) hue-rotate(262deg) brightness(91%) contrast(86%); }
+        .file-icon-svg[data-color="lock"] { filter: invert(26%) sepia(93%) saturate(1663%) hue-rotate(343deg) brightness(89%) contrast(89%); }
+        .file-icon-svg[data-color="default"] { filter: invert(62%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(93%) contrast(86%); }
         
         .folder-icon.visible, .file-icon.visible, .root-icon.visible {
             opacity: 1;

@@ -173,11 +173,13 @@ function activate(context) {
                         vscode.window.showInformationMessage(i18nService.t('messages.copied'));
                         break;
                     case 'export':
+                        console.log('Export command received, text length:', message.text?.length || 0);
                         const uri = await vscode.window.showSaveDialog({
                             filters: { 'Text files': ['txt'] },
                             defaultUri: vscode.Uri.file(path.join(rootPath, 'arbol.txt'))
                         });
                         if (uri) {
+                            console.log('Writing to file:', uri.fsPath, 'Text:', message.text?.substring(0, 100));
                             fs.writeFileSync(uri.fsPath, message.text);
                             vscode.window.showInformationMessage(i18nService.t('messages.saved', { path: uri.fsPath }));
                         }
@@ -1246,18 +1248,27 @@ function getWebviewContent(rootPath, treeData, includeHidden, showIcons, panel, 
         // Función para generar texto del árbol basado en el estado actual del DOM
         function generateTreeTextFromDOM() {
             const rootElement = document.querySelector('.collapsible-tree');
-            if (!rootElement) return '';
+            console.log('generateTreeTextFromDOM - Root element found:', !!rootElement);
+            if (!rootElement) {
+                console.log('generateTreeTextFromDOM - No root element found');
+                return '';
+            }
             
             let result = '';
             
             function processElement(element, prefix = '', isLast = true) {
+                console.log('processElement - Element classes:', element.className);
                 // Obtener el tipo de elemento
                 const isFolder = element.classList.contains('folder');
                 const isFile = element.classList.contains('file');
                 const isRoot = element.classList.contains('root');
                 
+                console.log('processElement - isRoot:', isRoot, 'isFolder:', isFolder, 'isFile:', isFile);
+                
                 if (isRoot) {
-                    const rootName = element.querySelector('.root-name')?.textContent || '';
+                    const rootNameEl = element.querySelector('.root-name');
+                    const rootName = rootNameEl?.textContent || '';
+                    console.log('processElement - Root name:', rootName);
                     const rootIcon = currentShowIcons ? '📁 ' : '';
                     result += rootIcon + rootName + '\\n';
                     
@@ -1308,6 +1319,7 @@ function getWebviewContent(rootPath, treeData, includeHidden, showIcons, panel, 
             }
             
             processElement(rootElement);
+            console.log('generateTreeTextFromDOM - Final result:', result);
             return result;
         }
         
@@ -1339,6 +1351,8 @@ function getWebviewContent(rootPath, treeData, includeHidden, showIcons, panel, 
         
         function exportToFile() {
             const treeText = generateTreeTextFromDOM();
+            console.log('Export - Tree text length:', treeText.length);
+            console.log('Export - Tree text:', treeText.substring(0, 200));
             vscode.postMessage({
                 command: 'export',
                 text: treeText

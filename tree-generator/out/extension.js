@@ -774,7 +774,10 @@ function getWebviewContent(rootPath, treeData, includeHidden, showIcons, panel, 
         clearSearch: i18n.t('ui.clearSearch'),
         searchMatch: i18n.t('ui.searchMatch'),
         searchMatches: i18n.t('ui.searchMatches'),
-        noResults: i18n.t('ui.noResults')
+        noResults: i18n.t('ui.noResults'),
+        // Icon URLs for the show/hide icons button
+        showEyeIcon: `${taskbarIconUris.showEye}`,
+        hideEyeIcon: `${taskbarIconUris.hideEye}`
     };
     return `<!DOCTYPE html>
 <html lang="${currentLang}">
@@ -1456,7 +1459,7 @@ function getWebviewContent(rootPath, treeData, includeHidden, showIcons, panel, 
             if (sidebarBtn) {
                 sidebarBtn.className = currentShowIcons ? 'active' : '';
                 sidebarBtn.title = currentShowIcons ? translations.hideIcons : translations.showIcons;
-                sidebarBtn.innerHTML = currentShowIcons ? '👁️' : '👁️‍🗨️';
+                sidebarBtn.innerHTML = '<img src="' + (currentShowIcons ? translations.hideEyeIcon : translations.showEyeIcon) + '" class="sidebar-icon" alt="">';
             }
         }
         

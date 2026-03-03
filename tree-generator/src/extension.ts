@@ -189,11 +189,6 @@ export function activate(context: vscode.ExtensionContext) {
                             vscode.window.showInformationMessage(i18nService.t('messages.copied'));
                             break;
                         case 'export':
-                            console.log('Export command received');
-                            console.log('Export - Text is undefined:', message.text === undefined);
-                            console.log('Export - Text is empty:', message.text === '');
-                            console.log('Export - Text length:', message.text?.length || 0);
-                            console.log('Export - Full text:', message.text);
                             const uri = await vscode.window.showSaveDialog({
                                 filters: { 'Text files': ['txt'] },
                                 defaultUri: vscode.Uri.file(path.join(rootPath, 'arbol.txt'))
@@ -723,8 +718,8 @@ function getWebviewContent(
         }
         
         .sidebar button {
-            background-color: var(--vscode-button-background);
-            color: var(--vscode-button-foreground);
+            background-color: #2E7D32;
+            color: #ffffff;
             border: none;
             padding: 10px;
             cursor: pointer;
@@ -740,20 +735,20 @@ function getWebviewContent(
         }
         
         .sidebar button:hover {
-            background-color: var(--vscode-button-hoverBackground);
+            background-color: #388E3C;
             transform: translateY(-1px);
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
         }
         
         .sidebar button:active {
-            background-color: var(--vscode-button-background);
+            background-color: #1B5E20;
             transform: translateY(0);
             box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
         }
 
         .sidebar button.active {
-            background-color: var(--vscode-button-secondaryBackground);
-            color: var(--vscode-button-secondaryForeground);
+            background-color: #4CAF50;
+            color: #ffffff;
             outline: 2px solid var(--vscode-focusBorder);
             outline-offset: 1px;
         }
@@ -1320,29 +1315,21 @@ function getWebviewContent(
         // Función para generar texto del árbol basado en el estado actual del DOM
         function generateTreeTextFromDOM() {
             const rootElement = document.querySelector('.tree-item.root');
-            console.log('generateTreeTextFromDOM - Root element found:', !!rootElement);
-            console.log('generateTreeTextFromDOM - Root element classes:', rootElement?.className);
             if (!rootElement) {
-                console.log('generateTreeTextFromDOM - No root element found');
                 return '';
             }
             
             let result = '';
             
             function processElement(element, prefix = '', isLast = true) {
-                console.log('processElement - Element:', element);
-                console.log('processElement - Element classes:', element.className);
                 // Obtener el tipo de elemento
                 const isFolder = element.classList.contains('folder');
                 const isFile = element.classList.contains('file');
                 const isRoot = element.classList.contains('root');
                 
-                console.log('processElement - isRoot:', isRoot, 'isFolder:', isFolder, 'isFile:', isFile);
-                
                 if (isRoot) {
                     const rootNameEl = element.querySelector('.root-name');
                     const rootName = rootNameEl?.textContent || '';
-                    console.log('processElement - Root name:', rootName);
                     const rootIcon = currentShowIcons ? '📁 ' : '';
                     result += rootIcon + rootName + '\\n';
                     
@@ -1393,7 +1380,6 @@ function getWebviewContent(
             }
             
             processElement(rootElement);
-            console.log('generateTreeTextFromDOM - Final result:', result);
             return result;
         }
         
@@ -1425,8 +1411,6 @@ function getWebviewContent(
         
         function exportToFile() {
             const treeText = generateTreeTextFromDOM();
-            console.log('Export - Tree text length:', treeText.length);
-            console.log('Export - Tree text:', treeText.substring(0, 200));
             vscode.postMessage({
                 command: 'export',
                 text: treeText

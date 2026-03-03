@@ -1,17 +1,19 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
-<svg width="800px" height="800px" viewBox="0 0 32 32" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:sketch="http://www.bohemiancoding.com/sketch/ns">
+<svg width="800px" height="800px" viewBox="0 0 20 20" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
     
-    <title>folder 2</title>
-    <desc>Created with Sketch Beta.</desc>
+    <title>folder_fill [#1774]</title>
+    <desc>Created with Sketch.</desc>
     <defs>
 
 </defs>
-    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" sketch:type="MSPage">
-        <g id="Icon-Set-Filled" sketch:type="MSLayerGroup" transform="translate(-362.000000, -153.000000)" fill="#000000">
-            <path d="M390,157 L376,157 C376,154.791 374.209,153 372,153 L366,153 C363.791,153 362,154.791 362,157 L362,163 L394,163 L394,161 C394,158.791 392.209,157 390,157 L390,157 Z M362,181 C362,183.209 363.791,185 366,185 L390,185 C392.209,185 394,183.209 394,181 L394,165 L362,165 L362,181 L362,181 Z" id="folder-2" sketch:type="MSShapeGroup">
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Dribbble-Light-Preview" transform="translate(-340.000000, -1199.000000)" fill="#000000">
+            <g id="icons" transform="translate(56.000000, 160.000000)">
+                <path d="M284,1057.0005 C284,1058.1055 284.895,1059.0005 286,1059.0005 L302,1059.0005 C303.105,1059.0005 304,1058.1055 304,1057.0005 L304,1049.0005 L284,1049.0005 L284,1057.0005 Z M304,1045.0005 L304,1047.0005 L284,1047.0005 L284,1041.0005 C284,1039.8955 284.895,1039.0005 286,1039.0005 L292,1039.0005 C293.105,1039.0005 294,1039.8955 294,1041.0005 L294,1042.0005 C294,1042.5525 294.448,1043.0005 295,1043.0005 L302,1043.0005 C303.105,1043.0005 304,1043.8955 304,1045.0005 L304,1045.0005 Z" id="folder_fill-[#1774]">
 
 </path>
+            </g>
         </g>
     </g>
 </svg>

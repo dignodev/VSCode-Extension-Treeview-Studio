@@ -13,9 +13,13 @@ function getFontConfig(): { fontFamily: string, fontSize: number } {
 
 let donationShown = false;
 let i18nService: I18nService;
+let extensionContext: vscode.ExtensionContext; // Almacenar contexto para iconos SVG
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('Tree Generator extension activada');
+    
+    // Almacenar el contexto para usarlo en la generación de iconos SVG
+    extensionContext = context;
     
     // Inicializar servicio de internacionalización
     i18nService = new I18nService(context);
@@ -118,7 +122,8 @@ export function activate(context: vscode.ExtensionContext) {
                     enableScripts: true,
                     retainContextWhenHidden: true,
                     localResourceRoots: [
-                        vscode.Uri.joinPath(context.extensionUri, 'resources', 'fonts')
+                        vscode.Uri.joinPath(context.extensionUri, 'resources', 'fonts'),
+                        vscode.Uri.joinPath(context.extensionUri, 'resources', 'icons')
                     ]
                 }
             );
@@ -353,10 +358,14 @@ function generateCollapsibleHTML(
     rootPath: string, 
     options: { includeHidden: boolean, maxDepth?: number, showIcons: boolean },
     fontConfig: { fontFamily: string, fontSize: number },
-    i18n: I18nService
+    i18n: I18nService,
+    webview: vscode.Webview,
+    context: vscode.ExtensionContext
 ): string {
     const rootName = path.basename(rootPath);
-    const rootIcon = options.showIcons ? '📁 ' : '';
+    // Usar emoji para texto, pero para HTML usamos el SVG si está disponible
+    const rootIconEmoji = options.showIcons ? '📁 ' : '';
+    const rootIconSvg = options.showIcons && webview ? getFolderIconSVG(webview, context) : '';
     
     function processDirectory(dirPath: string, depth: number = 0, prefix: string = '', isLast: boolean = true): string {
         if (options.maxDepth && depth >= options.maxDepth) {
@@ -413,7 +422,9 @@ function generateCollapsibleHTML(
                 let visualPrefix = prefix;
                 
                 if (item.isDirectory) {
-                    const dirIcon = options.showIcons ? '📁 ' : '';
+                    // Usar emoji para texto, pero para HTML usamos el SVG
+                    const dirIconEmoji = options.showIcons ? '📁 ' : '';
+                    const dirIconSvg = options.showIcons && webview ? getFolderIconSVG(webview, context) : '';
                     const contentId = `content-${itemId}`;
                     
                     // Determinar el prefijo para el contenido de la carpeta
@@ -424,7 +435,7 @@ function generateCollapsibleHTML(
                             <div class="tree-line folder-header" onclick="toggleFolder('${contentId}', this)" data-fullpath="${escapeHtml(item.path)}">
                                 <span class="prefix">${visualPrefix}</span>
                                 <span class="connector">${connector}</span>
-                                <span class="folder-icon ${options.showIcons ? 'visible' : 'hidden'}">${dirIcon}</span>
+                                <span class="folder-icon ${options.showIcons ? 'visible' : 'hidden'}">${dirIconSvg || dirIconEmoji}</span>
                                 <span class="folder-name">${escapeHtml(item.name)}/</span>
                                 <span class="toggle-icon">▼</span>
                             </div>
@@ -434,13 +445,15 @@ function generateCollapsibleHTML(
                         </div>
                     `;
                 } else {
-                    const icon = options.showIcons ? getFileIcon(item.name) + ' ' : '';
+                    // Usar emoji para texto, pero para HTML usamos el SVG
+                    const iconEmoji = options.showIcons ? getFileIcon(item.name) + ' ' : '';
+                    const iconSvg = options.showIcons && webview ? getFileIconSVG(item.name, webview, context) : '';
                     html += `
                         <div class="tree-item file" data-depth="${depth}" data-path="${escapeHtml(item.path)}">
                             <div class="tree-line" data-fullpath="${escapeHtml(item.path)}">
                                 <span class="prefix">${visualPrefix}</span>
                                 <span class="connector">${connector}</span>
-                                <span class="file-icon ${options.showIcons ? 'visible' : 'hidden'}">${icon}</span>
+                                <span class="file-icon ${options.showIcons ? 'visible' : 'hidden'}">${iconSvg || iconEmoji}</span>
                                 <span class="file-name">${escapeHtml(item.name)}</span>
                             </div>
                         </div>
@@ -458,7 +471,7 @@ function generateCollapsibleHTML(
         <div class="collapsible-tree" style="font-family: 'UbuntuMono', 'RobotoRegular', '${fontConfig.fontFamily}', monospace; font-size: ${fontConfig.fontSize}px;">
             <div class="tree-item root folder">
                 <div class="tree-line folder-header" onclick="toggleFolder('root-content', this)">
-                    <span class="root-icon ${options.showIcons ? 'visible' : 'hidden'}">${rootIcon}</span>
+                    <span class="root-icon ${options.showIcons ? 'visible' : 'hidden'}">${rootIconSvg || rootIconEmoji}</span>
                     <span class="root-name">${rootName}/</span>
                     <span class="toggle-icon">▼</span>
                 </div>
@@ -522,8 +535,8 @@ async function generateDirectoryTree(rootPath: string, options: { includeHidden:
     // Generar el árbol visual con formato
     const visualTree = generateVisualTree(rootPath, options);
     
-    // Generar árbol HTML colapsable
-    const collapsibleHtml = generateCollapsibleHTML(rootPath, options, fontConfig, i18nService);
+    // Generar árbol HTML (sin webview - se generará en getWebviewContent)
+    const collapsibleHtml = '';
     
     // Calcular el tamaño del directorio
     const directorySize = calculateDirectorySize(rootPath, options.includeHidden);
@@ -609,6 +622,65 @@ function getFileIcon(fileName: string): string {
     return iconMap[ext] || '📄';
 }
 
+// Función para obtener el icono SVG local (para visualización HTML)
+function getFileIconSVG(fileName: string, webview: vscode.Webview, context: vscode.ExtensionContext): string {
+    const ext = path.extname(fileName).toLowerCase();
+    const baseName = path.basename(fileName).toLowerCase();
+    
+    // Mapeo de extensiones a nombres de archivos SVG
+    const svgMap: { [key: string]: string } = {
+        '.css': 'file-css',
+        '.scss': 'file-css',
+        '.sass': 'file-css',
+        '.less': 'file-css',
+        '.json': 'file-json',
+        '.pdf': 'file-pdf',
+        '.txt': 'file-txt',
+        '.zip': 'file-zipper',
+        '.tar': 'file-zipper',
+        '.gz': 'file-zipper',
+        '.sql': 'sql',
+        '.java': 'file-java',
+        '.swift': 'file-swift',
+        '.py': 'python-file',
+        '.php': 'php-file'
+    };
+    
+    // Archivos especiales
+    let svgName: string | undefined;
+    
+    if (baseName === 'dockerfile') {
+        svgName = 'file-docker';
+    } else if (baseName === 'gitignore' || baseName === '.gitignore') {
+        svgName = 'git';
+    } else if (baseName === 'package.json' || baseName === 'package-lock.json') {
+        svgName = 'lock';
+    } else if (baseName === 'env' || baseName === '.env' || baseName === 'makefile' || baseName === 'tsconfig.json') {
+        svgName = 'settings';
+    } else {
+        svgName = svgMap[ext];
+    }
+    
+    if (svgName) {
+        // Usar asWebviewUri para generar una URI válida para el webview
+        const resourceUri = webview.asWebviewUri(
+            vscode.Uri.joinPath(context.extensionUri, 'resources', 'icons', `${svgName}.svg`)
+        );
+        console.log(`[Tree Generator] SVG URI (asWebviewUri): ${resourceUri}`);
+        return `<img src="${resourceUri}" class="file-icon-svg" alt="">`;
+    }
+    
+    return '';
+}
+
+// Función para obtener el icono de carpeta SVG
+function getFolderIconSVG(webview: vscode.Webview, context: vscode.ExtensionContext): string {
+    const resourceUri = webview.asWebviewUri(
+        vscode.Uri.joinPath(context.extensionUri, 'resources', 'icons', 'folder-open.svg')
+    );
+    return `<img src="${resourceUri}" class="folder-icon-svg" alt="">`;
+}
+
 // Función para escapar HTML y prevenir XSS
 function escapeHtml(str: string): string {
     // Log para validar que la función está siendo utilizada
@@ -636,6 +708,9 @@ function getWebviewContent(
     const escapedRootPath = rootPath.replace(/\\/g, '\\\\');
     const fontConfig = getFontConfig();
     const currentLang = i18n.getCurrentLanguage();
+    
+    // Generar el árbol HTML colapsable con webview para SVG
+    const collapsibleHtml = generateCollapsibleHTML(rootPath, { includeHidden, showIcons }, fontConfig, i18n, panel.webview, context);
     
     // Traducciones para pasar al frontend
     const translations = {
@@ -1009,6 +1084,16 @@ function getWebviewContent(
             margin-right: 4px;
             user-select: text;
             -webkit-user-select: text;
+            vertical-align: middle;
+        }
+        
+        /* Estilos para iconos SVG */
+        .folder-icon-svg, .file-icon-svg {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            vertical-align: middle;
+            margin-right: 4px;
         }
         
         .folder-icon.visible, .file-icon.visible, .root-icon.visible {
@@ -1217,7 +1302,7 @@ function getWebviewContent(
                 </div>
                 
                 <div class="tree-container" id="treeContainer">
-                    ${treeData.html}
+                    ${collapsibleHtml}
                 </div>
             </div>
             
@@ -1507,7 +1592,15 @@ function getWebviewContent(
                 currentShowIcons = message.showIcons;
                 
                 // Actualizar el contenido del árbol
-                document.getElementById('treeContainer').innerHTML = message.treeData.html;
+                const newCollapsibleHtml = generateCollapsibleHTML(
+                    message.rootPath,
+                    { includeHidden: message.includeHidden, showIcons: message.showIcons },
+                    getFontConfig(),
+                    i18nService,
+                    panel.webview,
+                    context
+                );
+                document.getElementById('treeContainer').innerHTML = newCollapsibleHtml;
                 
                 // Actualizar checkbox y botón de iconos
                 document.getElementById('includeHidden').checked = currentIncludeHidden;

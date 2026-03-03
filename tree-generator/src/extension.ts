@@ -739,7 +739,9 @@ function getWebviewContent(
         }
         
         .search-input:focus {
-            outline: 1px solid var(--vscode-focusBorder);
+            outline: none;
+            border-color: #4CAF50;
+            box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
         }
         
         .search-input::placeholder {
@@ -748,23 +750,32 @@ function getWebviewContent(
         
         .clear-search-btn {
             background: none;
-            border: none;
+            border: 1px solid transparent;
             color: var(--vscode-button-secondaryForeground);
             cursor: pointer;
             padding: 4px 8px;
             font-size: 12px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
         }
         
         .clear-search-btn:hover {
-            color: var(--vscode-button-secondaryHoverBackground);
+            background-color: rgba(76, 175, 80, 0.15);
+            color: #4CAF50;
         }
         
         .search-results-count {
             font-size: 12px;
-            color: var(--vscode-descriptionForeground);
-            padding: 4px 8px;
-            background-color: var(--vscode-editor-inactiveSelectionBackground);
-            border-radius: 4px;
+            color: #4CAF50;
+            padding: 4px 10px;
+            background-color: rgba(76, 175, 80, 0.12);
+            border-radius: 12px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        
+        .search-results-count:hover {
+            background-color: rgba(76, 175, 80, 0.2);
         }
         
         .title {
@@ -781,25 +792,35 @@ function getWebviewContent(
         }
         
         .controls-row button {
-            background-color: var(--vscode-button-background);
-            color: var(--vscode-button-foreground);
+            background-color: #2E7D32;
+            color: #ffffff;
             border: none;
-            padding: 6px 12px;
+            padding: 6px 14px;
             cursor: pointer;
             border-radius: 4px;
             font-size: 12px;
             transition: all 0.2s ease;
             font-family: 'RobotoRegular', var(--vscode-font-family);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
         }
         
         .controls-row button:hover {
-            background-color: var(--vscode-button-hoverBackground);
+            background-color: #388E3C;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+        }
+        
+        .controls-row button:active {
+            background-color: #1B5E20;
+            transform: translateY(0);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
         }
 
         .controls-row button.active {
-            background-color: var(--vscode-button-secondaryBackground);
-            color: var(--vscode-button-secondaryForeground);
-            outline: 2px solid var(--vscode-focusBorder);
+            background-color: #4CAF50;
+            color: #ffffff;
+            outline: 2px solid #81C784;
+            outline-offset: 1px;
         }
         
         .options-panel {
@@ -845,12 +866,18 @@ function getWebviewContent(
         }
         
         .option-group button {
-            background-color: var(--vscode-button-background);
-            color: var(--vscode-button-foreground);
+            background-color: #2E7D32;
+            color: #ffffff;
             border: none;
             padding: 6px 12px;
             cursor: pointer;
             border-radius: 4px;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+        
+        .option-group button:hover {
+            background-color: #388E3C;
         }
         
         .tree-container {
@@ -1068,11 +1095,22 @@ function getWebviewContent(
         }
         
         .search-match {
-            background-color: rgba(255, 212, 0, 0.2);
+            background-color: rgba(76, 175, 80, 0.2);
+            border-radius: 3px;
+            padding: 1px 3px;
+            margin: -1px -3px;
+            transition: background-color 0.15s ease;
         }
         
         .search-match:hover {
-            background-color: rgba(255, 212, 0, 0.3);
+            background-color: rgba(76, 175, 80, 0.35);
+        }
+        
+        .search-match .folder-name,
+        .search-match .file-name,
+        .search-match .root-name {
+            color: #4CAF50;
+            font-weight: 600;
         }
     </style>
 </head>

@@ -701,11 +701,6 @@ function getWebviewContent(
             margin: 0;
         }
         
-        .header-content {
-            display: flex;
-            gap: 15px;
-        }
-        
         .main-content {
             flex: 1;
             min-width: 0;
@@ -763,6 +758,13 @@ function getWebviewContent(
             margin-bottom: 20px;
             padding-bottom: 10px;
             border-bottom: 1px solid var(--vscode-panel-border);
+        }
+        
+        .main-area {
+            display: flex;
+            flex: 1;
+            min-width: 0;
+            gap: 20px;
         }
         
         .title-row {
@@ -1062,6 +1064,16 @@ function getWebviewContent(
             border-radius: 4px;
             word-break: break-all;
             font-family: 'RobotoRegular', var(--vscode-font-family);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            align-items: flex-start;
+        }
+        
+        .stats-container {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
         }
         
         .stats-grid {
@@ -1167,81 +1179,83 @@ function getWebviewContent(
 <body>
     <div class="container">
         <div class="header">
-            <div class="header-content">
-                <div class="main-content">
-                    <div class="title-row">
-                        <div class="title">${i18n.t('ui.title', { path: path.basename(rootPath) })}</div>
-                    </div>
-                    
-                    <div class="search-container">
-                        <input type="text" id="searchInput" class="search-input" placeholder="${i18n.t('ui.searchPlaceholder')}" autocomplete="off" aria-label="${i18n.t('ui.search')}" role="searchbox">
-                        <button class="clear-search-btn" onclick="clearSearch()" title="${i18n.t('ui.clearSearch')}" aria-label="${i18n.t('ui.clearSearch')}">✕</button>
-                        <span class="search-results-count" id="searchResultsCount"></span>
-                    </div>
-                </div>
-                
-                <div class="sidebar" role="toolbar" aria-label="Tree controls">
-                    <button onclick="toggleOptions()" title="${i18n.t('ui.options')}" aria-label="${i18n.t('ui.options')}">⚙️</button>
-                    <button onclick="toggleIcons()" id="toggleIconsBtnSidebar" class="${showIcons ? 'active' : ''}" title="${showIcons ? i18n.t('ui.hideIcons') : i18n.t('ui.showIcons')}" aria-label="${showIcons ? i18n.t('ui.hideIcons') : i18n.t('ui.showIcons')}">
-                        ${showIcons ? '👁️' : '👁️‍🗨️'}
-                    </button>
-                    <button onclick="expandAll()" title="${i18n.t('ui.expandAll')}" aria-label="${i18n.t('ui.expandAll')}">📂</button>
-                    <button onclick="collapseAll()" title="${i18n.t('ui.collapseAll')}" aria-label="${i18n.t('ui.collapseAll')}">📁</button>
-                    <button onclick="copyVisibleTree()" title="${i18n.t('ui.copyVisible')}" aria-label="${i18n.t('ui.copyVisible')}">📋</button>
-                    <button onclick="copySelection()" title="${i18n.t('ui.copySelection')}" aria-label="${i18n.t('ui.copySelection')}">✂️</button>
-                    <button onclick="exportToFile()" title="${i18n.t('ui.export')}" aria-label="${i18n.t('ui.export')}">💾</button>
-                    <button onclick="changeLanguage()" title="${i18n.t('ui.language')}" aria-label="${i18n.t('ui.language')}">🌐</button>
-                </div>
+            <div class="title-row">
+                <div class="title">${i18n.t('ui.title', { path: path.basename(rootPath) })}</div>
             </div>
-        </div>
-
-        <div class="options-panel" id="optionsPanel">
-            <div class="option-group">
-                <label>
-                    <input type="checkbox" id="includeHidden" ${includeHidden ? 'checked' : ''}> 
-                    ${i18n.t('options.includeHidden').replace('?', '')}
-                </label>
-                
-                <label>
-                    ${i18n.t('options.maxDepth')}:
-                    <input type="number" id="maxDepth" min="1" placeholder="${i18n.t('options.maxDepthPlaceholder')}" value="">
-                </label>
-                
-                <button onclick="applyOptions()">${i18n.t('ui.apply')}</button>
-                <button onclick="resetOptions()">${i18n.t('ui.reset')}</button>
+            
+            <div class="search-container">
+                <input type="text" id="searchInput" class="search-input" placeholder="${i18n.t('ui.searchPlaceholder')}" autocomplete="off" aria-label="${i18n.t('ui.search')}" role="searchbox">
+                <button class="clear-search-btn" onclick="clearSearch()" title="${i18n.t('ui.clearSearch')}" aria-label="${i18n.t('ui.clearSearch')}">✕</button>
+                <span class="search-results-count" id="searchResultsCount"></span>
             </div>
         </div>
         
-        <div class="status-message" id="statusMessage" style="display: none;">
-            <span class="loading"></span>
-            <span id="statusText">${i18n.t('messages.regenerating')}</span>
+        <div class="main-area">
+            <div class="main-content">
+                <div class="options-panel" id="optionsPanel">
+                    <div class="option-group">
+                        <label>
+                            <input type="checkbox" id="includeHidden" ${includeHidden ? 'checked' : ''}> 
+                            ${i18n.t('options.includeHidden').replace('?', '')}
+                        </label>
+                        
+                        <label>
+                            ${i18n.t('options.maxDepth')}:
+                            <input type="number" id="maxDepth" min="1" placeholder="${i18n.t('options.maxDepthPlaceholder')}" value="">
+                        </label>
+                        
+                        <button onclick="applyOptions()">${i18n.t('ui.apply')}</button>
+                        <button onclick="resetOptions()">${i18n.t('ui.reset')}</button>
+                    </div>
+                </div>
+                
+                <div class="status-message" id="statusMessage" style="display: none;">
+                    <span class="loading"></span>
+                    <span id="statusText">${i18n.t('messages.regenerating')}</span>
+                </div>
+                
+                <div class="tree-container" id="treeContainer">
+                    ${treeData.html}
+                </div>
+            </div>
+            
+            <div class="sidebar" role="toolbar" aria-label="Tree controls">
+                <button onclick="toggleOptions()" title="${i18n.t('ui.options')}" aria-label="${i18n.t('ui.options')}">⚙️</button>
+                <button onclick="toggleIcons()" id="toggleIconsBtnSidebar" class="${showIcons ? 'active' : ''}" title="${showIcons ? i18n.t('ui.hideIcons') : i18n.t('ui.showIcons')}" aria-label="${showIcons ? i18n.t('ui.hideIcons') : i18n.t('ui.showIcons')}">
+                    ${showIcons ? '👁️' : '👁️‍🗨️'}
+                </button>
+                <button onclick="expandAll()" title="${i18n.t('ui.expandAll')}" aria-label="${i18n.t('ui.expandAll')}">📂</button>
+                <button onclick="collapseAll()" title="${i18n.t('ui.collapseAll')}" aria-label="${i18n.t('ui.collapseAll')}">📁</button>
+                <button onclick="copyVisibleTree()" title="${i18n.t('ui.copyVisible')}" aria-label="${i18n.t('ui.copyVisible')}">📋</button>
+                <button onclick="copySelection()" title="${i18n.t('ui.copySelection')}" aria-label="${i18n.t('ui.copySelection')}">✂️</button>
+                <button onclick="exportToFile()" title="${i18n.t('ui.export')}" aria-label="${i18n.t('ui.export')}">💾</button>
+                <button onclick="changeLanguage()" title="${i18n.t('ui.language')}" aria-label="${i18n.t('ui.language')}">🌐</button>
+            </div>
         </div>
         
-        <div class="tree-container" id="treeContainer">
-            ${treeData.html}
-        </div>
-        
-        <div class="stats">
-            <div class="stats-grid">
-                <div class="stat-item">
-                    <span class="stat-label">${i18n.t('stats.path')}:</span>
-                    <span title="${rootPath}">${rootPath.length > 50 ? rootPath.substring(0, 47) + '...' : rootPath}</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">${i18n.t('stats.hidden')}:</span>
-                    <span id="hiddenStatus">${includeHidden ? i18n.t('stats.included') : i18n.t('stats.excluded')}</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">${i18n.t('stats.icons')}:</span>
-                    <span id="iconsStatus">${showIcons ? i18n.t('stats.showing') : i18n.t('stats.hidden')}</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">${i18n.t('stats.lines')}:</span>
-                    <span>${(treeData.text.match(/\n/g) || []).length}</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">${i18n.t('stats.size')}:</span>
-                    <span>${treeData.size}</span>
+        <div class="stats-container">
+            <div class="stats">
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <span class="stat-label">${i18n.t('stats.path')}:</span>
+                        <span title="${rootPath}">${rootPath.length > 50 ? rootPath.substring(0, 47) + '...' : rootPath}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">${i18n.t('stats.hidden')}:</span>
+                        <span id="hiddenStatus">${includeHidden ? i18n.t('stats.included') : i18n.t('stats.excluded')}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">${i18n.t('stats.icons')}:</span>
+                        <span id="iconsStatus">${showIcons ? i18n.t('stats.showing') : i18n.t('stats.hidden')}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">${i18n.t('stats.lines')}:</span>
+                        <span>${(treeData.text.match(/\n/g) || []).length}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">${i18n.t('stats.size')}:</span>
+                        <span>${treeData.size}</span>
+                    </div>
                 </div>
             </div>
         </div>

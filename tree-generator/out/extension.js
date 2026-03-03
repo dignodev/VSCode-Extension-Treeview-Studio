@@ -170,7 +170,8 @@ function activate(context) {
                             command: 'updateTree',
                             treeData: newTreeData,
                             includeHidden: newIncludeHidden,
-                            showIcons: newShowIcons
+                            showIcons: newShowIcons,
+                            treeHtml: generateCollapsibleHTML(cleanRootPath, { includeHidden: newIncludeHidden, showIcons: newShowIcons }, getFontConfig(), i18nService, panel.webview, context)
                         });
                         break;
                     case 'copy':
@@ -1666,16 +1667,10 @@ function getWebviewContent(rootPath, treeData, includeHidden, showIcons, panel, 
                 currentIncludeHidden = message.includeHidden;
                 currentShowIcons = message.showIcons;
                 
-                // Actualizar el contenido del árbol
-                const newCollapsibleHtml = generateCollapsibleHTML(
-                    message.rootPath,
-                    { includeHidden: message.includeHidden, showIcons: message.showIcons },
-                    getFontConfig(),
-                    i18nService,
-                    panel.webview,
-                    context
-                );
-                document.getElementById('treeContainer').innerHTML = newCollapsibleHtml;
+                // Insertar el HTML del árbol enviado por la extensión
+                if (message.treeHtml) {
+                    document.getElementById('treeContainer').innerHTML = message.treeHtml;
+                }
                 
                 // Actualizar checkbox y botón de iconos
                 document.getElementById('includeHidden').checked = currentIncludeHidden;

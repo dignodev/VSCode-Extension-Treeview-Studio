@@ -3,5 +3,7 @@
     "commands.donate": "Tree Generatorをサポート ☕",
     "commands.language": "言語を変更",
     "config.fontFamily": "ディレクトリツリーのフォントファミリー",
-    "config.fontSize": "ツリーのフォントサイズ"
+    "config.fontSize": "ツリーのフォントサイズ",
+    "config.maxDepth": "ディレクトリツリーでたどる最大深度",
+    "config.collapseEntries": "デフォルトでツリー内のフォルダを折りたたむ"
 }

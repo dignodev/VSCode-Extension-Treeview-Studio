@@ -3,5 +3,7 @@
     "commands.donate": "Tree Generator unterstützen ☕",
     "commands.language": "Sprache ändern",
     "config.fontFamily": "Schriftart für den Verzeichnisbaum",
-    "config.fontSize": "Schriftgröße für den Baum"
+    "config.fontSize": "Schriftgröße für den Baum",
+    "config.maxDepth": "Maximale Tiefe für die Verzeichnisbaum-Durchlauf",
+    "config.collapseEntries": "Ordner standardmäßig im Baum einklappen"
 }

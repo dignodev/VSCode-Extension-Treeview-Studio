@@ -3,5 +3,7 @@
     "commands.donate": "Apoyar Tree Generator ☕",
     "commands.language": "Cambiar Idioma",
     "config.fontFamily": "Familia de fuente para el árbol de directorios",
-    "config.fontSize": "Tamaño de fuente para el árbol"
+    "config.fontSize": "Tamaño de fuente para el árbol",
+    "config.maxDepth": "Profundidad máxima para recorrer en el árbol de directorios",
+    "config.collapseEntries": "Contraer carpetas por defecto en el árbol"
 }

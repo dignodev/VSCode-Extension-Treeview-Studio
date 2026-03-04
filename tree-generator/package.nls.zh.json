@@ -3,5 +3,7 @@
     "commands.donate": "支持 Tree Generator ☕",
     "commands.language": "更改语言",
     "config.fontFamily": "目录树的字体家族",
-    "config.fontSize": "树的字体大小"
+    "config.fontSize": "树的字体大小",
+    "config.maxDepth": "目录树遍历的最大深度",
+    "config.collapseEntries": "默认折叠树中的文件夹"
 }

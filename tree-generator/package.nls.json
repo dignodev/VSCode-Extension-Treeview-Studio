@@ -3,5 +3,7 @@
     "commands.donate": "Support Tree Generator ☕",
     "commands.language": "Change Language",
     "config.fontFamily": "Font family for the directory tree",
-    "config.fontSize": "Font size for the tree"
+    "config.fontSize": "Font size for the tree",
+    "config.maxDepth": "Maximum depth to traverse in the directory tree",
+    "config.collapseEntries": "Collapse folders by default in the tree"
 }

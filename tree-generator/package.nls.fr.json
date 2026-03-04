@@ -3,5 +3,7 @@
     "commands.donate": "Soutenir Tree Generator ☕",
     "commands.language": "Changer de langue",
     "config.fontFamily": "Famille de polices pour l'arborescence",
-    "config.fontSize": "Taille de police pour l'arborescence"
+    "config.fontSize": "Taille de police pour l'arborescence",
+    "config.maxDepth": "Profondeur maximale à parcourir dans l'arborescence",
+    "config.collapseEntries": "Réduire les dossiers par défaut dans l'arbre"
 }

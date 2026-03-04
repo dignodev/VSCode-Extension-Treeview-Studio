@@ -1,4 +1,8 @@
-# VSCode Tree Generator 🌳
+# VSCode Tree Generator 🌳 
+
+<div align="center">
+<img src="UI/Icons/icon.png" alt="Buy Me A Coffee" style="height: 200px !important;" >
+</div>
 
 English | [Español](./README.es.md) | [日本語](./README.ja.md)
 

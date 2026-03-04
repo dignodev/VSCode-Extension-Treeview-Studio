@@ -14,7 +14,8 @@
   "activationEvents": [
     "onCommand:tree-generator.generateTree",
     "onCommand:tree-generator.donate",
-    "onCommand:tree-generator.changeLanguage"
+    "onCommand:tree-generator.changeLanguage",
+    "onCommand:tree-generator.clearCache"
   ],
   "main": "./out/extension.js",
   "sponsor": {
@@ -49,6 +50,12 @@
         "title": "%commands.language%",
         "category": "Tree Generator",
         "icon": "resources/icons/taskbar-icons/language-square.svg"
+      },
+      {
+        "command": "tree-generator.clearCache",
+        "title": "Clear Tree Cache",
+        "category": "Tree Generator",
+        "icon": "resources/icons/taskbar-icons/hide-eye.svg"
       }
     ],
     "menus": {

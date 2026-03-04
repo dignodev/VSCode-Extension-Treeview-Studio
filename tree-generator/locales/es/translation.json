@@ -22,7 +22,8 @@
     "languageChanged": "Idioma cambiado correctamente",
     "reloadNow": "Recargar ahora",
     "reloadRequired": "El cambio de idioma requiere recargar la ventana para actualizar los menús",
-    "reloadPrompt": "¿Quieres recargar ahora?"
+    "reloadPrompt": "¿Quieres recargar ahora?",
+    "cacheCleared": "Caché de árbol limpiada correctamente"
   },
   "options": {
     "includeHidden": "¿Incluir archivos ocultos (como .git, node_modules)?",

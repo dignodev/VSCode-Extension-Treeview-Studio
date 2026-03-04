@@ -3,6 +3,192 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { I18nService } from './i18n';
 
+// ============================================
+// CACHE SYSTEM FOR TREE DATA
+// ============================================
+
+interface TreeCacheEntry {
+    text: string;
+    html: string;
+    size: string;
+    timestamp: number;
+    mtimeMap: Map<string, number>; // dirPath -> last modification time
+}
+
+interface CacheOptions {
+    includeHidden: boolean;
+    maxDepth?: number;
+    showIcons: boolean;
+}
+
+class TreeCache {
+    private cache: Map<string, TreeCacheEntry> = new Map();
+    private maxSize: number = 10; // Max number of cached trees
+    
+    // Generate composite key from path and options
+    private getCacheKey(rootPath: string, options: CacheOptions): string {
+        return `${rootPath}|${options.includeHidden}|${options.maxDepth ?? 'none'}|${options.showIcons}`;
+    }
+    
+    // Get mtime of a directory (newest file mtime within)
+    private getDirectoryMtime(dirPath: string, includeHidden: boolean): number {
+        let newestMtime = 0;
+        try {
+            const stat = fs.statSync(dirPath);
+            newestMtime = stat.mtimeMs;
+            
+            const items = fs.readdirSync(dirPath);
+            for (const item of items) {
+                if (!includeHidden && (item.startsWith('.') || item === 'node_modules' || item === '.git')) {
+                    continue;
+                }
+                const itemPath = path.join(dirPath, item);
+                try {
+                    const itemStat = fs.statSync(itemPath);
+                    if (itemStat.mtimeMs > newestMtime) {
+                        newestMtime = itemStat.mtimeMs;
+                    }
+                    // Check subdirectories recursively up to 2 levels for performance
+                    if (itemStat.isDirectory()) {
+                        const subMtime = this.getDirectoryMtimeLimited(itemPath, includeHidden, 1);
+                        if (subMtime > newestMtime) {
+                            newestMtime = subMtime;
+                        }
+                    }
+                } catch {
+                    // Skip inaccessible files
+                }
+            }
+        } catch {
+            // Return 0 if directory is inaccessible
+        }
+        return newestMtime;
+    }
+    
+    // Limited depth mtime check (for performance)
+    private getDirectoryMtimeLimited(dirPath: string, includeHidden: boolean, maxDepth: number, currentDepth: number = 0): number {
+        if (currentDepth >= maxDepth) {
+            return 0;
+        }
+        
+        let newestMtime = 0;
+        try {
+            const stat = fs.statSync(dirPath);
+            newestMtime = stat.mtimeMs;
+            
+            const items = fs.readdirSync(dirPath);
+            for (const item of items) {
+                if (!includeHidden && (item.startsWith('.') || item === 'node_modules' || item === '.git')) {
+                    continue;
+                }
+                const itemPath = path.join(dirPath, item);
+                try {
+                    const itemStat = fs.statSync(itemPath);
+                    if (itemStat.mtimeMs > newestMtime) {
+                        newestMtime = itemStat.mtimeMs;
+                    }
+                    if (itemStat.isDirectory()) {
+                        const subMtime = this.getDirectoryMtimeLimited(itemPath, includeHidden, maxDepth, currentDepth + 1);
+                        if (subMtime > newestMtime) {
+                            newestMtime = subMtime;
+                        }
+                    }
+                } catch {
+                    // Skip inaccessible files
+                }
+            }
+        } catch {
+            // Return 0 if directory is inaccessible
+        }
+        return newestMtime;
+    }
+    
+    // Check if cache is valid (no changes detected)
+    hasValidCache(rootPath: string, options: CacheOptions): boolean {
+        const key = this.getCacheKey(rootPath, options);
+        const entry = this.cache.get(key);
+        
+        if (!entry) {
+            console.log('[Tree Cache] Cache miss - no entry found for:', rootPath);
+            return false;
+        }
+        
+        // Check if directory mtime has changed
+        const currentMtime = this.getDirectoryMtime(rootPath, options.includeHidden);
+        const cachedMtime = entry.mtimeMap.get(rootPath) || 0;
+        
+        if (currentMtime !== cachedMtime) {
+            console.log('[Tree Cache] Cache invalidated - mtime changed:', {
+                rootPath,
+                currentMtime,
+                cachedMtime,
+                diff: currentMtime - cachedMtime
+            });
+            this.cache.delete(key);
+            return false;
+        }
+        
+        console.log('[Tree Cache] Cache hit - valid cache for:', rootPath);
+        return true;
+    }
+    
+    // Get cached tree data
+    get(rootPath: string, options: CacheOptions): TreeCacheEntry | undefined {
+        const key = this.getCacheKey(rootPath, options);
+        return this.cache.get(key);
+    }
+    
+    // Store tree data in cache
+    set(rootPath: string, options: CacheOptions, entry: Omit<TreeCacheEntry, 'timestamp' | 'mtimeMap'>): void {
+        // Evict oldest entry if cache is full
+        if (this.cache.size >= this.maxSize) {
+            let oldestKey: string | null = null;
+            let oldestTimestamp = Infinity;
+            
+            for (const [key, value] of this.cache.entries()) {
+                if (value.timestamp < oldestTimestamp) {
+                    oldestTimestamp = value.timestamp;
+                    oldestKey = key;
+                }
+            }
+            
+            if (oldestKey) {
+                console.log('[Tree Cache] Evicting oldest entry:', oldestKey);
+                this.cache.delete(oldestKey);
+            }
+        }
+        
+        const key = this.getCacheKey(rootPath, options);
+        const mtimeMap = new Map<string, number>();
+        mtimeMap.set(rootPath, this.getDirectoryMtime(rootPath, options.includeHidden));
+        
+        this.cache.set(key, {
+            ...entry,
+            timestamp: Date.now(),
+            mtimeMap
+        });
+        
+        console.log('[Tree Cache] Cached tree for:', rootPath, 'Total entries:', this.cache.size);
+    }
+    
+    // Clear all cache
+    clear(): void {
+        console.log('[Tree Cache] Clearing all cache');
+        this.cache.clear();
+    }
+    
+    // Get cache statistics
+    getStats(): { size: number, keys: string[] } {
+        return {
+            size: this.cache.size,
+            keys: Array.from(this.cache.keys())
+        };
+    }
+}
+
+// Global cache instance
+const treeCache = new TreeCache();
+
 // Función para obtener la configuración de fuente
 function getFontConfig(): { fontFamily: string, fontSize: number } {
     const config = vscode.workspace.getConfiguration('tree-generator');
@@ -60,6 +246,15 @@ export function activate(context: vscode.ExtensionContext) {
             vscode.env.openExternal(vscode.Uri.parse('https://www.buymeacoffee.com/dignodev'));
         })
     );
+    
+    // Registrar comando para limpiar caché
+    context.subscriptions.push(
+        vscode.commands.registerCommand('tree-generator.clearCache', () => {
+            treeCache.clear();
+            vscode.window.showInformationMessage(i18nService.t('messages.cacheCleared') || 'Cache cleared successfully');
+            console.log('[Tree Generator] Cache cleared by user');
+        })
+    );
 
     // Registrar comando principal
     let disposable = vscode.commands.registerCommand('tree-generator.generateTree', async (uri: vscode.Uri) => {
@@ -107,6 +302,13 @@ export function activate(context: vscode.ExtensionContext) {
             const maxDepth = await getMaxDepth();
             
             // Generar el árbol (por defecto con iconos)
+            console.log('[Tree Generator Cache] Initial tree generation started:', {
+                rootPath,
+                includeHidden: includeHidden === i18nService.t('options.yes'),
+                maxDepth: maxDepth,
+                timestamp: new Date().toISOString()
+            });
+            
             const treeData = await generateDirectoryTree(rootPath, {
                 includeHidden: includeHidden === i18nService.t('options.yes'),
                 maxDepth: maxDepth,
@@ -160,6 +362,15 @@ export function activate(context: vscode.ExtensionContext) {
                 async message => {
                     switch (message.command) {
                         case 'refresh':
+                            // DIAGNOSTIC: Log refresh request
+                            console.log('[Tree Generator Cache] Refresh requested:', {
+                                rootPath: message.rootPath,
+                                includeHidden: message.includeHidden,
+                                maxDepth: message.maxDepth,
+                                showIcons: message.showIcons,
+                                timestamp: new Date().toISOString()
+                            });
+                            
                             // Asegurarnos de que los valores booleanos se manejen correctamente
                             const newIncludeHidden = message.includeHidden === true || message.includeHidden === 'true';
                             const newMaxDepth = message.maxDepth ? parseInt(message.maxDepth) : undefined;
@@ -288,6 +499,9 @@ async function getMaxDepth(): Promise<number | undefined> {
 
 // Función para generar el árbol visual con formato adecuado
 function generateVisualTree(rootPath: string, options: { includeHidden: boolean, maxDepth?: number, showIcons: boolean }): string {
+    const startTime = Date.now();
+    console.log('[Tree Generator Cache] generateVisualTree started:', { rootPath, maxDepth: options.maxDepth });
+    
     const rootName = path.basename(rootPath);
     const rootIcon = options.showIcons ? '📁 ' : '';
     let treeOutput = `${rootIcon}${rootName}/\n`;
@@ -539,6 +753,36 @@ function formatSize(bytes: number): string {
 }
 
 async function generateDirectoryTree(rootPath: string, options: { includeHidden: boolean, maxDepth?: number, showIcons: boolean }): Promise<{ text: string, html: string, size: string }> {
+    // DIAGNOSTIC: Log entry point for tree generation
+    const startTime = Date.now();
+    console.log('[Tree Generator Cache] generateDirectoryTree called:', {
+        rootPath,
+        includeHidden: options.includeHidden,
+        maxDepth: options.maxDepth,
+        showIcons: options.showIcons,
+        timestamp: new Date().toISOString()
+    });
+    
+    // CHECK CACHE FIRST - Return cached data if valid (no changes detected)
+    if (treeCache.hasValidCache(rootPath, options)) {
+        const cached = treeCache.get(rootPath, options);
+        if (cached) {
+            const cacheAge = Date.now() - cached.timestamp;
+            console.log('[Tree Generator Cache] Returning cached tree:', {
+                rootPath,
+                cacheAgeMs: cacheAge,
+                treeLength: cached.text.length
+            });
+            return {
+                text: cached.text,
+                html: cached.html,
+                size: cached.size
+            };
+        }
+    }
+    
+    console.log('[Tree Generator Cache] Cache miss or invalid - generating new tree');
+    
     // Obtener configuración de fuente
     const fontConfig = getFontConfig();
     
@@ -551,6 +795,22 @@ async function generateDirectoryTree(rootPath: string, options: { includeHidden:
     // Calcular el tamaño del directorio
     const directorySize = calculateDirectorySize(rootPath, options.includeHidden);
     const formattedSize = formatSize(directorySize);
+    
+    // STORE IN CACHE
+    treeCache.set(rootPath, options, {
+        text: visualTree,
+        html: collapsibleHtml,
+        size: formattedSize
+    });
+    
+    // DIAGNOSTIC: Log completion time
+    const duration = Date.now() - startTime;
+    console.log('[Tree Generator Cache] generateDirectoryTree completed:', {
+        rootPath,
+        durationMs: duration,
+        treeLength: visualTree.length,
+        size: formattedSize
+    });
     
     return { 
         text: visualTree, 

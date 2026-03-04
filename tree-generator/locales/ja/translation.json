@@ -19,7 +19,8 @@
     "donationPrompt": "Tree Generatorをお楽しみですか？開発を支援していただけるなら、コーヒーをご馳走してください ☕",
     "donateNow": "今すぐ支援",
     "later": "後で",
-    "languageChanged": "言語が正常に変更されました"
+    "languageChanged": "言語が正常に変更されました",
+    "cacheCleared": "ツリーキャッシュが正常にクリアされました"
   },
   "options": {
     "includeHidden": "隠しファイルを含める（.git, node_modulesなど）？",

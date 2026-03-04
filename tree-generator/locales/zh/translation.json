@@ -19,7 +19,8 @@
     "donationPrompt": "喜欢 Tree Generator 吗？如果你想支持开发，请我喝杯咖啡 ☕",
     "donateNow": "立即支持",
     "later": "稍后",
-    "languageChanged": "语言已成功更改"
+    "languageChanged": "语言已成功更改",
+    "cacheCleared": "树缓存已成功清除"
   },
   "options": {
     "includeHidden": "包括隐藏文件（如 .git, node_modules）？",

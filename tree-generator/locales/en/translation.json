@@ -22,7 +22,8 @@
     "languageChanged": "Language changed successfully",
     "reloadNow": "Reload now",
     "reloadRequired": "Language change requires reloading the window to update the menus",
-    "reloadPrompt": "Do you want to reload now?"
+    "reloadPrompt": "Do you want to reload now?",
+    "cacheCleared": "Tree cache cleared successfully"
   },
   "options": {
     "includeHidden": "Include hidden files (like .git, node_modules)?",

@@ -19,7 +19,8 @@
     "donationPrompt": "Gefällt dir Tree Generator? Wenn du die Entwicklung unterstützen möchtest, lad mich auf einen Kaffee ein ☕",
     "donateNow": "Jetzt unterstützen",
     "later": "Später",
-    "languageChanged": "Sprache erfolgreich geändert"
+    "languageChanged": "Sprache erfolgreich geändert",
+    "cacheCleared": "Tree-Cache erfolgreich geleert"
   },
   "options": {
     "includeHidden": "Versteckte Dateien einschließen (wie .git, node_modules)?",

@@ -402,7 +402,7 @@ export function activate(context: vscode.ExtensionContext) {
                                 showIcons: newShowIcons,
                                 treeHtml: generateCollapsibleHTML(
                                     cleanRootPath,
-                                    { includeHidden: newIncludeHidden, showIcons: newShowIcons },
+                                    { includeHidden: newIncludeHidden, showIcons: newShowIcons, maxDepth: newMaxDepth },
                                     getFontConfig(),
                                     i18nService,
                                     panel.webview,
@@ -592,13 +592,20 @@ function generateCollapsibleHTML(
     const rootIconSvg = options.showIcons && webview ? getFolderIconSVG(webview, context) : '';
     
     function processDirectory(dirPath: string, depth: number = 0, prefix: string = '', isLast: boolean = true): string {
+        // Debug: log maxDepth setting
+        if (depth === 0) {
+            console.log('[Tree Gen] processDirectory called for:', dirPath, 'options.maxDepth:', options.maxDepth);
+        }
+        
         if (options.maxDepth && depth >= options.maxDepth) {
+            console.log('[Tree Gen] maxDepth reached for:', dirPath, 'depth:', depth, 'maxDepth:', options.maxDepth);
             return '';
         }
 
         let html = '';
         try {
             const items = fs.readdirSync(dirPath);
+            console.log('[Tree Gen] Reading directory:', dirPath, 'total items:', items.length, 'depth:', depth);
             
             // Filtrar items
             let filteredItems = items.filter(item => {
@@ -609,6 +616,8 @@ function generateCollapsibleHTML(
                 }
                 return true;
             });
+
+            console.log('[Tree Gen] Filtered items for:', dirPath, 'count:', filteredItems.length, 'depth:', depth);
 
             // Obtener estadísticas para ordenar
             const itemsWithStats = filteredItems.map(item => {
@@ -2134,9 +2143,26 @@ function getWebviewContent(
         // Función para colapsar/expandir carpetas
         function toggleFolder(contentId, element) {
             const content = document.getElementById(contentId);
+            console.log('[Tree UI] Toggle folder - contentId:', contentId, 'found:', !!content, 'childCount:', content ? content.children.length : 0);
             if (content) {
+                const wasCollapsed = content.classList.contains('collapsed');
                 content.classList.toggle('collapsed');
                 element.classList.toggle('collapsed');
+                console.log('[Tree UI] Folder toggled - wasCollapsed:', wasCollapsed, 'now collapsed:', content.classList.contains('collapsed'));
+                
+                // Debug: Log the children content
+                if (!wasCollapsed) { // Just opened
+                    const children = content.querySelectorAll('.tree-item');
+                    const childNames = Array.from(children).map(c => 
+                        c.querySelector('.folder-name, .file-name')?.textContent || 'unknown'
+                    ).slice(0, 5);
+                    console.log('[Tree UI] Opened folder content - children found:', children.length, 'sample:', childNames);
+                }
+            } else {
+                console.error('[Tree UI] ERROR: Content element not found for contentId:', contentId);
+                // Debug: list available content IDs
+                const allContents = document.querySelectorAll('[id^="content-"]');
+                console.log('[Tree UI] Available content IDs:', Array.from(allContents).map(el => el.id));
             }
         }
         
@@ -2144,6 +2170,7 @@ function getWebviewContent(
         function expandAll() {
             const contents = document.querySelectorAll('.folder-content');
             const headers = document.querySelectorAll('.folder-header');
+            console.log('[Tree UI] expandAll - found contents:', contents.length, 'headers:', headers.length);
             
             contents.forEach(content => {
                 content.classList.remove('collapsed');
@@ -2152,6 +2179,13 @@ function getWebviewContent(
             headers.forEach(header => {
                 header.classList.remove('collapsed');
             });
+            
+            // Debug: verify all folders are now visible
+            setTimeout(() => {
+                const allContents = document.querySelectorAll('.folder-content');
+                const collapsedContents = document.querySelectorAll('.folder-content.collapsed');
+                console.log('[Tree UI] expandAll complete - total:', allContents.length, 'collapsed:', collapsedContents.length);
+            }, 100);
         }
         
         // Función para colapsar todas las carpetas
@@ -2178,7 +2212,19 @@ function getWebviewContent(
                 
                 // Insertar el HTML del árbol enviado por la extensión
                 if (message.treeHtml) {
+                    console.log('[Tree UI] updateTree received - inserting new HTML, treeHtml length:', message.treeHtml.length);
+                    // Debug: count folder-content elements before and after
+                    const oldContents = document.querySelectorAll('.folder-content');
+                    console.log('[Tree UI] Old folder-content count:', oldContents.length);
+                    
                     document.getElementById('treeContainer').innerHTML = message.treeHtml;
+                    
+                    // Debug: check new content
+                    const newContents = document.querySelectorAll('.folder-content');
+                    console.log('[Tree UI] New folder-content count:', newContents.length);
+                    if (newContents.length > 0) {
+                        console.log('[Tree UI] Sample new content IDs:', Array.from(newContents).slice(0, 5).map(el => el.id));
+                    }
                 }
                 
                 // Actualizar checkbox y botón de iconos

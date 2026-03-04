@@ -4,6 +4,14 @@
   "description": "Genera un árbol de directorios del proyecto en una interfaz visual interactiva",
   "version": "0.3.0",
   "publisher": "dignodev",
+  "keywords": ["tree", "directory", "folder", "structure", "visualization", "project-tree", "file-tree"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dignodev/vscode-tree-generator.git"
+  },
+  "bugs": {
+    "url": "https://github.com/dignodev/vscode-tree-generator/issues"
+  },
   "engines": {
     "vscode": "^1.85.0"
   },

@@ -1,1 +1,6 @@
 tree-generator/node_modules
+tree-generator/out/
+*.vsix
+.DS_Store
+*.log
+.vscode-test/

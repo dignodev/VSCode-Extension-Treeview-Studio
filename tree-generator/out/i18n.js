@@ -41,21 +41,17 @@ class I18nService {
         this.packageTranslations = new Map();
         this.fallbackLanguage = 'en';
         this.context = context;
-
         const savedLanguage = context.globalState.get('tree-generator.language');
         const vscodeLanguage = vscode.env.language;
-
         this.currentLanguage = savedLanguage || this.getSupportedLanguage(vscodeLanguage) || this.fallbackLanguage;
-        // Cargar traducciones
         this.loadTranslations();
         this.loadPackageTranslations();
     }
-
+    // Carga las traducciones del package.nls.json
     async loadPackageTranslations() {
         const languages = ['en', 'es', 'fr', 'de', 'zh', 'ja'];
         for (const lang of languages) {
             try {
-
                 const fileName = lang === 'en' ? 'package.nls.json' : `package.nls.${lang}.json`;
                 const uri = vscode.Uri.joinPath(this.context.extensionUri, fileName);
                 try {
@@ -64,7 +60,6 @@ class I18nService {
                     this.packageTranslations.set(lang, translations);
                 }
                 catch (error) {
-
                     if (lang !== 'en') {
                         const altUri = vscode.Uri.joinPath(this.context.extensionUri, 'package.nls.json');
                         const fileContent = await vscode.workspace.fs.readFile(altUri);
@@ -78,21 +73,19 @@ class I18nService {
             }
         }
     }
-
+    // Obtener idioma más cercano soportado
     getSupportedLanguage(lang) {
         const supportedLanguages = ['en', 'es', 'fr', 'de', 'zh', 'ja'];
-
         if (supportedLanguages.includes(lang)) {
             return lang;
         }
-
         const baseLang = lang.split('-')[0];
         if (supportedLanguages.includes(baseLang)) {
             return baseLang;
         }
         return undefined;
     }
-
+    // Carga las traducciones de todos los idiomas
     async loadTranslations() {
         const languages = ['en', 'es', 'fr', 'de', 'zh', 'ja'];
         for (const lang of languages) {
@@ -107,56 +100,48 @@ class I18nService {
             }
         }
     }
-
+    // Obtener traducción para el package.json
     localize(key, ...args) {
-
         let translation = this.getPackageTranslation(this.currentLanguage, key);
-
         if (!translation) {
             translation = this.getPackageTranslation(this.fallbackLanguage, key);
         }
-
         if (!translation) {
             return key;
         }
-
         if (args.length > 0) {
             return this.formatString(translation, args);
         }
         return translation;
     }
-
+    // Obtiene traducción del package
     getPackageTranslation(lang, key) {
         const translations = this.packageTranslations.get(lang);
         if (!translations)
             return undefined;
         return translations[key];
     }
-
+    // Formatea un string, con argumentos
     formatString(str, args) {
         return str.replace(/{(\d+)}/g, (match, index) => {
             return typeof args[index] !== 'undefined' ? args[index] : match;
         });
     }
-
+    // Obtiene una traducción por clave
     t(key, params) {
-
         let translation = this.getNestedTranslation(this.currentLanguage, key);
-
         if (!translation) {
             translation = this.getNestedTranslation(this.fallbackLanguage, key);
         }
-
         if (!translation) {
             return key;
         }
-
         if (params) {
             return this.replaceParams(translation, params);
         }
         return translation;
     }
-
+    // Obtiene una traducción anidada
     getNestedTranslation(lang, key) {
         const translations = this.translations.get(lang);
         if (!translations)
@@ -173,21 +158,19 @@ class I18nService {
         }
         return typeof current === 'string' ? current : undefined;
     }
-
+    // Reemplaza parámetros en la traducción
     replaceParams(text, params) {
         return text.replace(/\{\{(\w+)\}\}/g, (match, key) => {
             return params[key]?.toString() || match;
         });
     }
-
+    // Cambia el idioma actual
     async setLanguage(lang) {
         const supportedLang = this.getSupportedLanguage(lang) || this.fallbackLanguage;
         if (supportedLang !== this.currentLanguage) {
             this.currentLanguage = supportedLang;
             await this.context.globalState.update('tree-generator.language', supportedLang);
-
             vscode.commands.executeCommand('tree-generator.languageChanged');
-
             vscode.window.showInformationMessage(this.t('messages.languageChanged'), this.t('messages.reloadNow'), this.t('messages.later')).then(selection => {
                 if (selection === this.t('messages.reloadNow')) {
                     vscode.commands.executeCommand('workbench.action.reloadWindow');
@@ -195,11 +178,11 @@ class I18nService {
             });
         }
     }
-
+    // Obtiene el idioma actual
     getCurrentLanguage() {
         return this.currentLanguage;
     }
-
+    // Obtiene la lista de idiomas disponibles
     getAvailableLanguages() {
         return [
             { code: 'en', name: 'English' },
@@ -212,3 +195,4 @@ class I18nService {
     }
 }
 exports.I18nService = I18nService;
+//# sourceMappingURL=i18n.js.map

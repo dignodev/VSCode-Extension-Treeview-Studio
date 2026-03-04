@@ -732,12 +732,11 @@ function generateCollapsibleHTML(
     }
     
     const rootCollapsedClass = fontConfig.collapseEntries ? ' collapsed' : '';
-    const rootHeaderCollapsedClass = fontConfig.collapseEntries ? ' collapsed' : '';
     
     return `
         <div class="collapsible-tree" style="font-family: 'UbuntuMono', 'RobotoRegular', '${fontConfig.fontFamily}', monospace; font-size: ${fontConfig.fontSize}px;">
             <div class="tree-item root folder">
-                <div class="tree-line folder-header${rootHeaderCollapsedClass}" onclick="toggleFolder('root-content', this)">
+                <div class="tree-line folder-header${rootCollapsedClass}" onclick="toggleFolder('root-content', this)">
                     <span class="root-icon ${options.showIcons ? 'visible' : 'hidden'}">${rootIconSvg || rootIconEmoji}</span>
                     <span class="root-name">${rootName}/</span>
                     <span class="toggle-icon">▼</span>

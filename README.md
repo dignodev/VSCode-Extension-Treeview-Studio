@@ -4,6 +4,8 @@ English | [Español](./README.es.md) | [日本語](./README.ja.md)
 
 [![VS Code](https://img.shields.io/badge/VS%20Code-%235586A4?style=flat&logo=visual-studio-code)](https://code.visualstudio.com/) [![Version](https://img.shields.io/badge/Version-0.3.0-blue)](https://marketplace.visualstudio.com/) [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE) [![Node.js](https://img.shields.io/badge/Node.js-%23339933?style=flat&logo=node.js)](https://nodejs.org/)
 
+[![VS Code](https://marketplace.visualstudio.com/items?itemName=dignodev=tree-generator)](https://code.visualstudio.com/)
+
 A Visual Studio Code extension that generates a directory tree visualization of your project. Perfect for documentation, sharing project structure, or understanding codebase organization.
 
 ## Features

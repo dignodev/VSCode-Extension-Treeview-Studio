@@ -3,16 +3,13 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { I18nService } from './i18n';
 
-// ============================================
-// CACHE SYSTEM FOR TREE DATA
-// ============================================
 
 interface TreeCacheEntry {
     text: string;
     html: string;
     size: string;
     timestamp: number;
-    mtimeMap: Map<string, number>; // dirPath -> last modification time
+    mtimeMap: Map<string, number>; 
 }
 
 interface CacheOptions {
@@ -23,14 +20,14 @@ interface CacheOptions {
 
 class TreeCache {
     private cache: Map<string, TreeCacheEntry> = new Map();
-    private maxSize: number = 10; // Max number of cached trees
+    private maxSize: number = 10; // Número máximo de entradas en caché
     
-    // Generate composite key from path and options
+
     private getCacheKey(rootPath: string, options: CacheOptions): string {
         return `${rootPath}|${options.includeHidden}|${options.maxDepth ?? 'none'}|${options.showIcons}`;
     }
     
-    // Get mtime of a directory (newest file mtime within)
+
     private getDirectoryMtime(dirPath: string, includeHidden: boolean): number {
         let newestMtime = 0;
         try {
@@ -48,7 +45,7 @@ class TreeCache {
                     if (itemStat.mtimeMs > newestMtime) {
                         newestMtime = itemStat.mtimeMs;
                     }
-                    // Check subdirectories recursively up to 2 levels for performance
+
                     if (itemStat.isDirectory()) {
                         const subMtime = this.getDirectoryMtimeLimited(itemPath, includeHidden, 1);
                         if (subMtime > newestMtime) {
@@ -56,16 +53,15 @@ class TreeCache {
                         }
                     }
                 } catch {
-                    // Skip inaccessible files
+                   // Omitir archivos inaccesibles 
                 }
             }
         } catch {
-            // Return 0 if directory is inaccessible
+            // Devolver 0 si el directorio es inaccesible
         }
         return newestMtime;
     }
     
-    // Limited depth mtime check (for performance)
     private getDirectoryMtimeLimited(dirPath: string, includeHidden: boolean, maxDepth: number, currentDepth: number = 0): number {
         if (currentDepth >= maxDepth) {
             return 0;
@@ -94,16 +90,16 @@ class TreeCache {
                         }
                     }
                 } catch {
-                    // Skip inaccessible files
+                    // Omitir archivos inaccesibles
                 }
             }
         } catch {
-            // Return 0 if directory is inaccessible
+            // Devolver 0 si el directorio es inaccesible
         }
         return newestMtime;
     }
     
-    // Check if cache is valid (no changes detected)
+
     hasValidCache(rootPath: string, options: CacheOptions): boolean {
         const key = this.getCacheKey(rootPath, options);
         const entry = this.cache.get(key);
@@ -113,7 +109,7 @@ class TreeCache {
             return false;
         }
         
-        // Check if directory mtime has changed
+
         const currentMtime = this.getDirectoryMtime(rootPath, options.includeHidden);
         const cachedMtime = entry.mtimeMap.get(rootPath) || 0;
         
@@ -132,15 +128,15 @@ class TreeCache {
         return true;
     }
     
-    // Get cached tree data
+    // Obtener entrada de caché
     get(rootPath: string, options: CacheOptions): TreeCacheEntry | undefined {
         const key = this.getCacheKey(rootPath, options);
         return this.cache.get(key);
     }
     
-    // Store tree data in cache
+    // Agregar o actualizar entrada de caché
     set(rootPath: string, options: CacheOptions, entry: Omit<TreeCacheEntry, 'timestamp' | 'mtimeMap'>): void {
-        // Evict oldest entry if cache is full
+
         if (this.cache.size >= this.maxSize) {
             let oldestKey: string | null = null;
             let oldestTimestamp = Infinity;
@@ -171,13 +167,13 @@ class TreeCache {
         console.log('[Tree Cache] Cached tree for:', rootPath, 'Total entries:', this.cache.size);
     }
     
-    // Clear all cache
+    // Limpiar toda la caché
     clear(): void {
         console.log('[Tree Cache] Clearing all cache');
         this.cache.clear();
     }
     
-    // Get cache statistics
+    // Obtener estadísticas de la caché
     getStats(): { size: number, keys: string[] } {
         return {
             size: this.cache.size,
@@ -186,10 +182,10 @@ class TreeCache {
     }
 }
 
-// Global cache instance
+// Instancia global de caché
 const treeCache = new TreeCache();
 
-// Función para obtener la configuración del árbol
+// Obtener la configuración del árbol
 interface TreeConfig {
     fontFamily: string;
     fontSize: number;
@@ -213,18 +209,18 @@ function getTreeConfig(): TreeConfig {
 
 let donationShown = false;
 let i18nService: I18nService;
-let extensionContext: vscode.ExtensionContext; // Almacenar contexto para iconos SVG
+let extensionContext: vscode.ExtensionContext;
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('Tree Generator extension activada');
     
-    // Almacenar el contexto para usarlo en la generación de iconos SVG
+
     extensionContext = context;
     
-    // Inicializar servicio de internacionalización
+
     i18nService = new I18nService(context);
 
-    // Registrar comando para cambiar idioma
+
     context.subscriptions.push(
         vscode.commands.registerCommand('tree-generator.changeLanguage', async () => {
             const languages = i18nService.getAvailableLanguages();
@@ -241,27 +237,27 @@ export function activate(context: vscode.ExtensionContext) {
             
             if (selected) {
                 await i18nService.setLanguage(selected.code);
-                // El mensaje de confirmación y recarga se maneja en i18nService.setLanguage
+
             }
         })
     );
 
-    // Registrar comando para cuando cambia el idioma
+
     context.subscriptions.push(
         vscode.commands.registerCommand('tree-generator.languageChanged', () => {
-            // Actualizar paneles abiertos si es necesario
+
             vscode.window.showInformationMessage(i18nService.t('messages.languageChanged'));
         })
     );
 
-    // Registrar comando para donación
+
     context.subscriptions.push(
         vscode.commands.registerCommand('tree-generator.donate', () => {
             vscode.env.openExternal(vscode.Uri.parse('https://www.buymeacoffee.com/dignodev'));
         })
     );
     
-    // Registrar comando para limpiar caché
+
     context.subscriptions.push(
         vscode.commands.registerCommand('tree-generator.clearCache', () => {
             treeCache.clear();
@@ -270,10 +266,10 @@ export function activate(context: vscode.ExtensionContext) {
         })
     );
 
-    // Registrar comando principal
+
     let disposable = vscode.commands.registerCommand('tree-generator.generateTree', async (uri: vscode.Uri) => {
         try {
-            // Obtener la ruta del directorio seleccionado
+
             let rootPath: string;
             
             if (uri && uri.fsPath) {
@@ -299,7 +295,7 @@ export function activate(context: vscode.ExtensionContext) {
                 rootPath = workspaceFolders[0].uri.fsPath;
             }
 
-            // Limpiar la ruta de posibles caracteres especiales
+
             rootPath = rootPath.replace(/\t/g, '').trim();
 
             // Preguntar al usuario si quiere incluir archivos ocultos
@@ -315,7 +311,7 @@ export function activate(context: vscode.ExtensionContext) {
             // Obtener profundidad máxima
             const maxDepth = await getMaxDepth();
             
-            // Generar el árbol (por defecto con iconos)
+            // Generar el árbol
             console.log('[Tree Generator Cache] Initial tree generation started:', {
                 rootPath,
                 includeHidden: includeHidden === i18nService.t('options.yes'),
@@ -357,7 +353,7 @@ export function activate(context: vscode.ExtensionContext) {
                 )
             };
 
-            // Enviar los datos al WebView
+
             const taskbarIconUris = getTaskbarIconURIs(panel.webview, context);
             const initialTreeConfig = getTreeConfig();
             panel.webview.html = getWebviewContent(
@@ -372,12 +368,12 @@ export function activate(context: vscode.ExtensionContext) {
                 taskbarIconUris
             );
 
-            // Manejar mensajes del WebView
+
             panel.webview.onDidReceiveMessage(
                 async message => {
                     switch (message.command) {
                         case 'refresh':
-                            // DIAGNOSTIC: Log refresh request
+
                             console.log('[Tree Generator Cache] Refresh requested:', {
                                 rootPath: message.rootPath,
                                 includeHidden: message.includeHidden,
@@ -386,10 +382,10 @@ export function activate(context: vscode.ExtensionContext) {
                                 timestamp: new Date().toISOString()
                             });
                             
-                            // Get tree configuration from settings
+
                             const treeConfig = getTreeConfig();
                             
-                            // Use config values as defaults, but allow message to override
+
                             const newIncludeHidden = message.includeHidden !== undefined 
                                 ? (message.includeHidden === true || message.includeHidden === 'true')
                                 : treeConfig.includeHidden;
@@ -403,10 +399,10 @@ export function activate(context: vscode.ExtensionContext) {
                                 ? (message.collapseEntries === true || message.collapseEntries === 'true')
                                 : treeConfig.collapseEntries;
                             
-                            // Limpiar la ruta
+
                             const cleanRootPath = message.rootPath.replace(/\t/g, '').trim();
                             
-                            // Log para validar la recepción del mensaje
+
                             console.log('[Tree Generator] Refresh requested:', {
                                 rootPath: cleanRootPath,
                                 includeHidden: newIncludeHidden,
@@ -525,7 +521,7 @@ async function getMaxDepth(): Promise<number | undefined> {
     return input ? parseInt(input) : undefined;
 }
 
-// Función para generar el árbol visual con formato adecuado
+
 function generateVisualTree(rootPath: string, options: { includeHidden: boolean, maxDepth?: number, showIcons: boolean }): string {
     const startTime = Date.now();
     console.log('[Tree Generator Cache] generateVisualTree started:', { rootPath, maxDepth: options.maxDepth });
@@ -543,7 +539,7 @@ function generateVisualTree(rootPath: string, options: { includeHidden: boolean,
         try {
             const items = fs.readdirSync(dirPath);
             
-            // Filtrar items
+
             let filteredItems = items.filter(item => {
                 if (!options.includeHidden) {
                     if (item.startsWith('.') || item === 'node_modules' || item === '.git') {
@@ -553,7 +549,7 @@ function generateVisualTree(rootPath: string, options: { includeHidden: boolean,
                 return true;
             });
 
-            // Obtener estadísticas para ordenar
+
             const itemsWithStats = filteredItems.map(item => {
                 const itemPath = path.join(dirPath, item);
                 try {
@@ -572,7 +568,7 @@ function generateVisualTree(rootPath: string, options: { includeHidden: boolean,
                 }
             });
 
-            // Ordenar: directorios primero
+
             itemsWithStats.sort((a, b) => {
                 if (a.isDirectory && !b.isDirectory) return -1;
                 if (!a.isDirectory && b.isDirectory) return 1;
@@ -605,7 +601,7 @@ function generateVisualTree(rootPath: string, options: { includeHidden: boolean,
     return treeOutput;
 }
 
-// Función para generar el árbol HTML con estructura colapsable
+
 function generateCollapsibleHTML(
     rootPath: string, 
     options: { includeHidden: boolean, maxDepth?: number, showIcons: boolean },
@@ -615,12 +611,12 @@ function generateCollapsibleHTML(
     context: vscode.ExtensionContext
 ): string {
     const rootName = path.basename(rootPath);
-    // Usar emoji para texto, pero para HTML usamos el SVG si está disponible
+
     const rootIconEmoji = options.showIcons ? '📁 ' : '';
     const rootIconSvg = options.showIcons && webview ? getFolderIconSVG(webview, context) : '';
     
     function processDirectory(dirPath: string, depth: number = 0, prefix: string = '', isLast: boolean = true): string {
-        // Debug: log maxDepth setting
+
         if (depth === 0) {
             console.log('[Tree Gen] processDirectory called for:', dirPath, 'options.maxDepth:', options.maxDepth);
         }
@@ -635,7 +631,7 @@ function generateCollapsibleHTML(
             const items = fs.readdirSync(dirPath);
             console.log('[Tree Gen] Reading directory:', dirPath, 'total items:', items.length, 'depth:', depth);
             
-            // Filtrar items
+
             let filteredItems = items.filter(item => {
                 if (!options.includeHidden) {
                     if (item.startsWith('.') || item === 'node_modules' || item === '.git') {
@@ -647,7 +643,7 @@ function generateCollapsibleHTML(
 
             console.log('[Tree Gen] Filtered items for:', dirPath, 'count:', filteredItems.length, 'depth:', depth);
 
-            // Obtener estadísticas para ordenar
+
             const itemsWithStats = filteredItems.map(item => {
                 const itemPath = path.join(dirPath, item);
                 try {
@@ -666,7 +662,7 @@ function generateCollapsibleHTML(
                 }
             });
 
-            // Ordenar: directorios primero
+
             itemsWithStats.sort((a, b) => {
                 if (a.isDirectory && !b.isDirectory) return -1;
                 if (!a.isDirectory && b.isDirectory) return 1;
@@ -679,19 +675,19 @@ function generateCollapsibleHTML(
                 const connector = isLastItem ? '└── ' : '├── ';
                 const itemId = `item-${depth}-${i}`;
                 
-                // Crear el prefijo visual para mantener la estructura del árbol
+
                 let visualPrefix = prefix;
                 
                 if (item.isDirectory) {
-                    // Usar emoji para texto, pero para HTML usamos el SVG
+
                     const dirIconEmoji = options.showIcons ? '📁 ' : '';
                     const dirIconSvg = options.showIcons && webview ? getFolderIconSVG(webview, context) : '';
                     const contentId = `content-${itemId}`;
                     
-                    // Determinar el prefijo para el contenido de la carpeta
+
                     const contentPrefix = prefix + (isLastItem ? '    ' : '│   ');
                     
-                    // Determinar si la carpeta debe estar colapsada inicialmente
+
                     const initialCollapsed = fontConfig.collapseEntries ? ' collapsed' : '';
                     
                     html += `
@@ -709,7 +705,7 @@ function generateCollapsibleHTML(
                         </div>
                     `;
                 } else {
-                    // Usar emoji para texto, pero para HTML usamos el SVG
+
                     const iconEmoji = options.showIcons ? getFileIcon(item.name) + ' ' : '';
                     const iconSvg = options.showIcons && webview ? getFileIconSVG(item.name, webview, context) : '';
                     html += `
@@ -749,12 +745,12 @@ function generateCollapsibleHTML(
     `;
 }
 
-// Función para calcular el tamaño total del directorio
+
 function calculateDirectorySize(rootPath: string, includeHidden: boolean): number {
     let totalSize = 0;
     
     function processDirectory(dirPath: string, depth: number = 0): void {
-        if (depth > 20) return; // Evitar recursion excesiva
+        if (depth > 20) return;
         
         try {
             const items = fs.readdirSync(dirPath);
@@ -785,7 +781,7 @@ function calculateDirectorySize(rootPath: string, includeHidden: boolean): numbe
     return totalSize;
 }
 
-// Función para formatear tamaño en bytes
+
 function formatSize(bytes: number): string {
     if (bytes === 0) return '0 B';
     const k = 1024;
@@ -795,7 +791,7 @@ function formatSize(bytes: number): string {
 }
 
 async function generateDirectoryTree(rootPath: string, options: { includeHidden: boolean, maxDepth?: number, showIcons: boolean }): Promise<{ text: string, html: string, size: string }> {
-    // DIAGNOSTIC: Log entry point for tree generation
+
     const startTime = Date.now();
     console.log('[Tree Generator Cache] generateDirectoryTree called:', {
         rootPath,
@@ -805,7 +801,7 @@ async function generateDirectoryTree(rootPath: string, options: { includeHidden:
         timestamp: new Date().toISOString()
     });
     
-    // CHECK CACHE FIRST - Return cached data if valid (no changes detected)
+
     if (treeCache.hasValidCache(rootPath, options)) {
         const cached = treeCache.get(rootPath, options);
         if (cached) {
@@ -825,27 +821,27 @@ async function generateDirectoryTree(rootPath: string, options: { includeHidden:
     
     console.log('[Tree Generator Cache] Cache miss or invalid - generating new tree');
     
-    // Obtener configuración del árbol
+
     const treeConfig = getTreeConfig();
     
-    // Generar el árbol visual con formato
+
     const visualTree = generateVisualTree(rootPath, options);
     
-    // Generar árbol HTML (sin webview - se generará en getWebviewContent)
+
     const collapsibleHtml = '';
     
-    // Calcular el tamaño del directorio
+
     const directorySize = calculateDirectorySize(rootPath, options.includeHidden);
     const formattedSize = formatSize(directorySize);
     
-    // STORE IN CACHE
+
     treeCache.set(rootPath, options, {
         text: visualTree,
         html: collapsibleHtml,
         size: formattedSize
     });
     
-    // DIAGNOSTIC: Log completion time
+
     const duration = Date.now() - startTime;
     console.log('[Tree Generator Cache] generateDirectoryTree completed:', {
         rootPath,
@@ -934,12 +930,12 @@ function getFileIcon(fileName: string): string {
     return iconMap[ext] || '📄';
 }
 
-// Función para obtener el icono SVG local (para visualización HTML)
+
 function getFileIconSVG(fileName: string, webview: vscode.Webview, context: vscode.ExtensionContext): string {
     const ext = path.extname(fileName).toLowerCase();
     const baseName = path.basename(fileName).toLowerCase();
     
-    // Mapeo de extensiones a nombres de archivos SVG
+
     const svgMap: { [key: string]: string } = {
         // TypeScript
         '.ts': 'file-typescript',
@@ -1090,7 +1086,7 @@ function getFileIconSVG(fileName: string, webview: vscode.Webview, context: vsco
         '.ae': 'file-adobe-aftereffects',
         // Parquet
         '.parquet': 'file-parquet',
-        // Default icon for unknown file types
+        // Otros
         'default': 'default-file'
     };
     
@@ -1120,15 +1116,15 @@ function getFileIconSVG(fileName: string, webview: vscode.Webview, context: vsco
         '.ts': 'javascript', // Yellow
         '.tsx': 'javascript', // Yellow
         '.vue': 'vuejs',    // Green
-        '.lock': 'lock',       // Generic lock - use 'lock' color
-        '.png': 'picture',    // Image purple
-        '.jpg': 'picture',    // Image purple
-        '.jpeg': 'picture',   // Image purple
-        '.gif': 'picture',    // Image purple
-        '.webp': 'picture',   // Image purple
-        '.ico': 'picture',    // Image purple
-        '.bmp': 'picture',    // Image purple
-        '.svg': 'picture',    // Image purple
+        '.lock': 'lock',       //  Gray
+        '.png': 'picture',    // 
+        '.jpg': 'picture',    //  
+        '.jpeg': 'picture',   // 
+        '.gif': 'picture',    // 
+        '.webp': 'picture',   // 
+        '.ico': 'picture',    // 
+        '.bmp': 'picture',    // 
+        '.svg': 'picture',    // 
         '.md': 'txt',         // Gray
         '.mdx': 'txt',        // Gray
         '.rs': 'cargo-crab',  // Rust orange
@@ -1139,8 +1135,8 @@ function getFileIconSVG(fileName: string, webview: vscode.Webview, context: vsco
         'package-lock': 'npm', // NPM red
         'env': 'env',        // Yellow
         'settings': 'settings',   // Blue
-        'picture': 'picture',     // Image purple
-        'default': 'default',     // Gray for unknown
+        'picture': 'picture',     // 
+        'default': 'default',     // Gray
         // Adobe Creative Suite
         '.psd': 'picture',
         '.ai': 'picture',
@@ -1148,7 +1144,7 @@ function getFileIconSVG(fileName: string, webview: vscode.Webview, context: vsco
         '.ae': 'picture',
         // Parquet
         '.parquet': 'default',
-        // Additional image formats (camera raw files)
+        // Imágenes
         '.heic': 'picture',
         '.tiff': 'picture',
         '.tif': 'picture'
@@ -1179,7 +1175,7 @@ function getFileIconSVG(fileName: string, webview: vscode.Webview, context: vsco
     }
     
     if (svgName) {
-        // Usar asWebviewUri para generar una URI válida para el webview
+
         const resourceUri = webview.asWebviewUri(
             vscode.Uri.joinPath(context.extensionUri, 'resources', 'icons', `${svgName}.svg`)
         );
@@ -1189,7 +1185,7 @@ function getFileIconSVG(fileName: string, webview: vscode.Webview, context: vsco
     return '';
 }
 
-// Función para obtener el icono de carpeta SVG
+
 function getFolderIconSVG(webview: vscode.Webview, context: vscode.ExtensionContext): string {
     const resourceUri = webview.asWebviewUri(
         vscode.Uri.joinPath(context.extensionUri, 'resources', 'icons', 'folder-open.svg')
@@ -1197,7 +1193,7 @@ function getFolderIconSVG(webview: vscode.Webview, context: vscode.ExtensionCont
     return `<img src="${resourceUri}" class="folder-icon-svg" alt="">`;
 }
 
-// Función para obtener los iconos de la barra de tareas (taskbar-icons)
+
 function getTaskbarIconURIs(webview: vscode.Webview, context: vscode.ExtensionContext): { [key: string]: vscode.Uri } {
     return {
         settings: webview.asWebviewUri(
@@ -1230,9 +1226,9 @@ function getTaskbarIconURIs(webview: vscode.Webview, context: vscode.ExtensionCo
     };
 }
 
-// Función para escapar HTML y prevenir XSS
+
 function escapeHtml(str: string): string {
-    // Log para validar que la función está siendo utilizada
+
     if (str && (str.includes('<') || str.includes('>') || str.includes('"'))) {
         console.log('[Tree Generator] XSS prevention: Escaped special characters in:', str.substring(0, 50));
     }
@@ -1259,10 +1255,10 @@ function getWebviewContent(
     const treeConfig = getTreeConfig();
     const currentLang = i18n.getCurrentLanguage();
     
-    // Generar el árbol HTML colapsable con webview para SVG
+
     const collapsibleHtml = generateCollapsibleHTML(rootPath, { includeHidden, showIcons }, treeConfig, i18n, panel.webview, context);
     
-    // Traducciones para pasar al frontend
+
     const translations = {
         hideIcons: i18n.t('ui.hideIcons'),
         showIcons: i18n.t('ui.showIcons'),
@@ -1286,7 +1282,6 @@ function getWebviewContent(
         searchMatch: i18n.t('ui.searchMatch'),
         searchMatches: i18n.t('ui.searchMatches'),
         noResults: i18n.t('ui.noResults'),
-        // Icon URLs for the show/hide icons button
         showEyeIcon: `${taskbarIconUris.showEye}`,
         hideEyeIcon: `${taskbarIconUris.hideEye}`
     };

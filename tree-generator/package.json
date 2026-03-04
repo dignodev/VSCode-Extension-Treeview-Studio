@@ -62,7 +62,7 @@
       "explorer/context": [
         {
           "command": "tree-generator.generateTree",
-          "group": "navigation",
+          "group": "3_workspace@1",
           "when": "explorerResourceIsFolder"
         }
       ]

@@ -572,32 +572,136 @@ function getFileIconSVG(fileName, webview, context) {
     const baseName = path.basename(fileName).toLowerCase();
     // Mapeo de extensiones a nombres de archivos SVG
     const svgMap = {
+        // TypeScript
+        '.ts': 'file-typescript',
+        '.tsx': 'file-typescript',
+        // C#
+        '.cs': 'file-csharp',
+        // Go
+        '.go': 'file-go',
+        // Ruby
+        '.rb': 'file-ruby',
+        // Kotlin
+        '.kt': 'file-kotlin',
+        '.kts': 'file-kotlin',
+        // Scala
+        '.scala': 'file-scala',
+        // Shell
+        '.sh': 'file-shell',
+        '.bash': 'file-shell',
+        '.zsh': 'file-shell',
+        // React
+        '.jsx': 'file-react',
+        // Angular
+        '.component.ts': 'file-angular',
+        // Next.js
+        '.next': 'file-nextjs',
+        // Node.js
+        'node_modules': 'file-nodejs',
+        // Svelte
+        '.svelte': 'file-svelte',
+        // GraphQL
+        '.graphql': 'file-graphql',
+        '.gql': 'file-graphql',
+        // YAML
+        '.yml': 'file-yaml',
+        '.yaml': 'file-yaml',
+        // Markdown
+        '.md': 'file-markdown',
+        '.mdx': 'file-markdown',
+        // XML
+        '.xml': 'file-xml',
+        // TOML
+        '.toml': 'file-toml',
+        // Config/INI
+        '.ini': 'file-config',
+        '.conf': 'file-config',
+        '.config': 'file-config',
+        // MongoDB
+        '.bson': 'file-mongodb',
+        '.mongodb': 'file-mongodb',
+        // PostgreSQL
+        '.pgsql': 'file-postgresql',
+        // SQLite
+        '.sqlite': 'file-sqlite',
+        // Certificates
+        '.pem': 'file-cert',
+        '.crt': 'file-cert',
+        '.key': 'file-cert',
+        '.cert': 'file-cert',
+        // Fonts
+        '.ttf': 'file-font',
+        '.otf': 'file-font',
+        '.woff': 'file-font',
+        '.woff2': 'file-font',
+        '.eot': 'file-font',
+        // Video
+        '.mp4': 'file-video',
+        '.webm': 'file-video',
+        '.mov': 'file-video',
+        '.avi': 'file-video',
+        '.mkv': 'file-video',
+        // Audio
+        '.mp3': 'file-audio',
+        '.wav': 'file-audio',
+        '.ogg': 'file-audio',
+        '.flac': 'file-audio',
+        '.aac': 'file-audio',
+        // Executables
+        '.exe': 'file-exe',
+        '.bin': 'file-exe',
+        '.app': 'file-exe',
+        '.dmg': 'file-exe',
+        '.msi': 'file-exe',
+        // Kubernetes
+        'kubeconfig': 'file-k8s',
+        '.kube': 'file-k8s',
+        // Terraform
+        '.tf': 'file-terraform',
+        '.tfstate': 'file-terraform',
+        // CSS preprocessors
         '.css': 'file-css',
         '.scss': 'file-css',
         '.sass': 'file-css',
         '.less': 'file-css',
+        // JSON
         '.json': 'file-json',
+        // PDF
         '.pdf': 'file-pdf',
+        // Text
         '.txt': 'file-txt',
+        // Archives
         '.zip': 'file-zipper',
         '.tar': 'file-zipper',
         '.gz': 'file-zipper',
+        '.rar': 'file-zipper',
+        '.7z': 'file-zipper',
+        // SQL
         '.sql': 'sql',
+        // Java
         '.java': 'file-java',
+        // Swift
         '.swift': 'file-swift',
+        // Python
         '.py': 'python-file',
+        // PHP
         '.php': 'php-file',
+        // CSV
         '.csv': 'file-csv',
+        // DB
         '.db': 'file-db',
+        // HTML
         '.html': 'file-html',
         '.htm': 'file-html',
+        // JavaScript
         '.js': 'file-javascript',
-        '.jsx': 'file-javascript',
-        '.ts': 'file-javascript',
-        '.tsx': 'file-javascript',
+        // Vue
         '.vue': 'file-vuejs',
+        // Rust
         '.rs': 'file-cargo-crab',
+        // Lock
         '.lock': 'lock',
+        // Images
         '.png': 'picture',
         '.jpg': 'picture',
         '.jpeg': 'picture',
@@ -606,8 +710,10 @@ function getFileIconSVG(fileName, webview, context) {
         '.ico': 'picture',
         '.bmp': 'picture',
         '.svg': 'picture',
-        '.md': 'file-txt',
-        '.mdx': 'file-txt',
+        '.heic': 'file-image',
+        '.raw': 'file-image',
+        '.tiff': 'file-image',
+        '.tif': 'file-image',
         // Adobe Creative Suite
         '.psd': 'file-adobe-photoshop',
         '.ai': 'file-adobe-illustrator',
@@ -615,11 +721,6 @@ function getFileIconSVG(fileName, webview, context) {
         '.ae': 'file-adobe-aftereffects',
         // Parquet
         '.parquet': 'file-parquet',
-        // Additional image formats (camera raw files)
-        '.heic': 'file-image',
-        '.raw': 'file-image', // Camera raw formats
-        '.tiff': 'file-image',
-        '.tif': 'file-image',
         // Default icon for unknown file types
         'default': 'default-file'
     };

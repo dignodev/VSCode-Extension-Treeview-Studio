@@ -76,5 +76,13 @@
     "de": "German",
     "zh": "Chinese",
     "ja": "Japanese"
+  },
+  "config": {
+    "fontFamily": "Font family for the tree view",
+    "fontSize": "Font size for the tree view",
+    "showIcons": "Show file type icons in the tree",
+    "includeHidden": "Include hidden files and folders (starting with .)",
+    "maxDepth": "Maximum depth to traverse in the directory tree",
+    "collapseEntries": "Collapse folders by default in the tree"
   }
 }

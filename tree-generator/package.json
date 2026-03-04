@@ -79,6 +79,26 @@
           "type": "number",
           "default": 13,
           "description": "%config.fontSize%"
+        },
+        "tree-generator.showIcons": {
+          "type": "boolean",
+          "default": true,
+          "description": "%config.showIcons%"
+        },
+        "tree-generator.includeHidden": {
+          "type": "boolean",
+          "default": false,
+          "description": "%config.includeHidden%"
+        },
+        "tree-generator.maxDepth": {
+          "type": "number",
+          "default": 10,
+          "description": "%config.maxDepth%"
+        },
+        "tree-generator.collapseEntries": {
+          "type": "boolean",
+          "default": false,
+          "description": "%config.collapseEntries%"
         }
       }
     }

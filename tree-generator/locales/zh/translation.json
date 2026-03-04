@@ -73,5 +73,13 @@
     "de": "德语",
     "zh": "中文",
     "ja": "日语"
+  },
+  "config": {
+    "fontFamily": "树视图的字体系列",
+    "fontSize": "树视图的字体大小",
+    "showIcons": "在树中显示文件类型图标",
+    "includeHidden": "包含隐藏的文件和文件夹（以 . 开头）",
+    "maxDepth": "目录树遍历的最大深度",
+    "collapseEntries": "默认折叠树中的文件夹"
   }
 }

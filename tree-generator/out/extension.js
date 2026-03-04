@@ -191,12 +191,16 @@ class TreeCache {
 }
 // Global cache instance
 const treeCache = new TreeCache();
-// Función para obtener la configuración de fuente
-function getFontConfig() {
+function getTreeConfig() {
     const config = vscode.workspace.getConfiguration('tree-generator');
-    const fontFamily = config.get('fontFamily', 'Consolas, Monaco, Courier New, monospace');
-    const fontSize = config.get('fontSize', 13);
-    return { fontFamily, fontSize };
+    return {
+        fontFamily: config.get('fontFamily', 'Consolas, Monaco, Courier New, monospace'),
+        fontSize: config.get('fontSize', 13),
+        showIcons: config.get('showIcons', true),
+        includeHidden: config.get('includeHidden', false),
+        maxDepth: config.get('maxDepth', 10),
+        collapseEntries: config.get('collapseEntries', false)
+    };
 }
 let donationShown = false;
 let i18nService;
@@ -306,7 +310,8 @@ function activate(context) {
             };
             // Enviar los datos al WebView
             const taskbarIconUris = getTaskbarIconURIs(panel.webview, context);
-            panel.webview.html = getWebviewContent(rootPath, treeData, includeHidden === i18nService.t('options.yes'), true, panel, context, fontUris, i18nService, taskbarIconUris);
+            const initialTreeConfig = getTreeConfig();
+            panel.webview.html = getWebviewContent(rootPath, treeData, initialTreeConfig.includeHidden, initialTreeConfig.showIcons, panel, context, fontUris, i18nService, taskbarIconUris);
             // Manejar mensajes del WebView
             panel.webview.onDidReceiveMessage(async (message) => {
                 switch (message.command) {
@@ -319,10 +324,21 @@ function activate(context) {
                             showIcons: message.showIcons,
                             timestamp: new Date().toISOString()
                         });
-                        // Asegurarnos de que los valores booleanos se manejen correctamente
-                        const newIncludeHidden = message.includeHidden === true || message.includeHidden === 'true';
-                        const newMaxDepth = message.maxDepth ? parseInt(message.maxDepth) : undefined;
-                        const newShowIcons = message.showIcons === true || message.showIcons === 'true';
+                        // Get tree configuration from settings
+                        const treeConfig = getTreeConfig();
+                        // Use config values as defaults, but allow message to override
+                        const newIncludeHidden = message.includeHidden !== undefined
+                            ? (message.includeHidden === true || message.includeHidden === 'true')
+                            : treeConfig.includeHidden;
+                        const newMaxDepth = message.maxDepth !== undefined
+                            ? Math.max(1, Math.min(100, parseInt(message.maxDepth) || treeConfig.maxDepth))
+                            : treeConfig.maxDepth;
+                        const newShowIcons = message.showIcons !== undefined
+                            ? (message.showIcons === true || message.showIcons === 'true')
+                            : treeConfig.showIcons;
+                        const newCollapseEntries = message.collapseEntries !== undefined
+                            ? (message.collapseEntries === true || message.collapseEntries === 'true')
+                            : treeConfig.collapseEntries;
                         // Limpiar la ruta
                         const cleanRootPath = message.rootPath.replace(/\t/g, '').trim();
                         // Log para validar la recepción del mensaje
@@ -330,7 +346,8 @@ function activate(context) {
                             rootPath: cleanRootPath,
                             includeHidden: newIncludeHidden,
                             maxDepth: newMaxDepth,
-                            showIcons: newShowIcons
+                            showIcons: newShowIcons,
+                            collapseEntries: newCollapseEntries
                         });
                         vscode.window.showInformationMessage(i18nService.t('messages.regenerating'));
                         const newTreeData = await generateDirectoryTree(cleanRootPath, {
@@ -343,7 +360,7 @@ function activate(context) {
                             treeData: newTreeData,
                             includeHidden: newIncludeHidden,
                             showIcons: newShowIcons,
-                            treeHtml: generateCollapsibleHTML(cleanRootPath, { includeHidden: newIncludeHidden, showIcons: newShowIcons, maxDepth: newMaxDepth }, getFontConfig(), i18nService, panel.webview, context)
+                            treeHtml: generateCollapsibleHTML(cleanRootPath, { includeHidden: newIncludeHidden, showIcons: newShowIcons, maxDepth: newMaxDepth }, { ...treeConfig, collapseEntries: newCollapseEntries }, i18nService, panel.webview, context)
                         });
                         break;
                     case 'copy':
@@ -560,16 +577,18 @@ function generateCollapsibleHTML(rootPath, options, fontConfig, i18n, webview, c
                     const contentId = `content-${itemId}`;
                     // Determinar el prefijo para el contenido de la carpeta
                     const contentPrefix = prefix + (isLastItem ? '    ' : '│   ');
+                    // Determinar si la carpeta debe estar colapsada inicialmente
+                    const initialCollapsed = fontConfig.collapseEntries ? ' collapsed' : '';
                     html += `
                         <div class="tree-item folder" data-depth="${depth}" data-path="${escapeHtml(item.path)}">
-                            <div class="tree-line folder-header" onclick="toggleFolder('${contentId}', this)" data-fullpath="${escapeHtml(item.path)}">
+                            <div class="tree-line folder-header${fontConfig.collapseEntries ? ' collapsed' : ''}" onclick="toggleFolder('${contentId}', this)" data-fullpath="${escapeHtml(item.path)}">
                                 <span class="prefix">${visualPrefix}</span>
                                 <span class="connector">${connector}</span>
                                 <span class="folder-icon ${options.showIcons ? 'visible' : 'hidden'}">${dirIconSvg || dirIconEmoji}</span>
                                 <span class="folder-name">${escapeHtml(item.name)}/</span>
                                 <span class="toggle-icon">▼</span>
                             </div>
-                            <div class="folder-content" id="${contentId}">
+                            <div class="folder-content${initialCollapsed}" id="${contentId}">
                                 ${processDirectory(item.path, depth + 1, contentPrefix, isLastItem)}
                             </div>
                         </div>
@@ -597,15 +616,17 @@ function generateCollapsibleHTML(rootPath, options, fontConfig, i18n, webview, c
         }
         return html;
     }
+    const rootCollapsedClass = fontConfig.collapseEntries ? ' collapsed' : '';
+    const rootHeaderCollapsedClass = fontConfig.collapseEntries ? ' collapsed' : '';
     return `
         <div class="collapsible-tree" style="font-family: 'UbuntuMono', 'RobotoRegular', '${fontConfig.fontFamily}', monospace; font-size: ${fontConfig.fontSize}px;">
             <div class="tree-item root folder">
-                <div class="tree-line folder-header" onclick="toggleFolder('root-content', this)">
+                <div class="tree-line folder-header${rootHeaderCollapsedClass}" onclick="toggleFolder('root-content', this)">
                     <span class="root-icon ${options.showIcons ? 'visible' : 'hidden'}">${rootIconSvg || rootIconEmoji}</span>
                     <span class="root-name">${rootName}/</span>
                     <span class="toggle-icon">▼</span>
                 </div>
-                <div class="folder-content" id="root-content">
+                <div class="folder-content${rootCollapsedClass}" id="root-content">
                     ${processDirectory(rootPath, 1, '', true)}
                 </div>
             </div>
@@ -683,8 +704,8 @@ async function generateDirectoryTree(rootPath, options) {
         }
     }
     console.log('[Tree Generator Cache] Cache miss or invalid - generating new tree');
-    // Obtener configuración de fuente
-    const fontConfig = getFontConfig();
+    // Obtener configuración del árbol
+    const treeConfig = getTreeConfig();
     // Generar el árbol visual con formato
     const visualTree = generateVisualTree(rootPath, options);
     // Generar árbol HTML (sin webview - se generará en getWebviewContent)
@@ -1073,10 +1094,10 @@ function escapeHtml(str) {
 }
 function getWebviewContent(rootPath, treeData, includeHidden, showIcons, panel, context, fontUris, i18n, taskbarIconUris) {
     const escapedRootPath = rootPath.replace(/\\/g, '\\\\');
-    const fontConfig = getFontConfig();
+    const treeConfig = getTreeConfig();
     const currentLang = i18n.getCurrentLanguage();
     // Generar el árbol HTML colapsable con webview para SVG
-    const collapsibleHtml = generateCollapsibleHTML(rootPath, { includeHidden, showIcons }, fontConfig, i18n, panel.webview, context);
+    const collapsibleHtml = generateCollapsibleHTML(rootPath, { includeHidden, showIcons }, treeConfig, i18n, panel.webview, context);
     // Traducciones para pasar al frontend
     const translations = {
         hideIcons: i18n.t('ui.hideIcons'),
@@ -1386,8 +1407,8 @@ function getWebviewContent(rootPath, treeData, includeHidden, showIcons, panel, 
             border-radius: 4px;
             border: 1px solid var(--vscode-panel-border);
             overflow-x: auto;
-            font-family: 'UbuntuMono', 'RobotoRegular', '${fontConfig.fontFamily}', monospace;
-            font-size: ${fontConfig.fontSize}px;
+            font-family: 'UbuntuMono', 'RobotoRegular', '${treeConfig.fontFamily}', monospace;
+            font-size: ${treeConfig.fontSize}px;
             line-height: 1.5;
             user-select: text;
             -webkit-user-select: text;

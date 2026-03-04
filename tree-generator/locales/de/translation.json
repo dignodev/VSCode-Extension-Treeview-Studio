@@ -73,5 +73,13 @@
     "de": "Deutsch",
     "zh": "Chinesisch",
     "ja": "Japanisch"
+  },
+  "config": {
+    "fontFamily": "Schriftfamilie für die Baumansicht",
+    "fontSize": "Schriftgröße für die Baumansicht",
+    "showIcons": "Dateityp-Symbole im Baum anzeigen",
+    "includeHidden": "Versteckte Dateien und Ordner einbeziehen (beginnend mit .)",
+    "maxDepth": "Maximale Tiefe für die Verzeichnisbaum-Durchlauf",
+    "collapseEntries": "Ordner standardmäßig im Baum einklappen"
   }
 }

@@ -73,5 +73,13 @@
     "de": "Allemand",
     "zh": "Chinois",
     "ja": "Japonais"
+  },
+  "config": {
+    "fontFamily": "Famille de polices pour la vue arborescente",
+    "fontSize": "Taille de police pour la vue arborescente",
+    "showIcons": "Afficher les icônes de type de fichier dans l'arbre",
+    "includeHidden": "Inclure les fichiers et dossiers cachés (commençant par .)",
+    "maxDepth": "Profondeur maximale à parcourir dans l'arborescence",
+    "collapseEntries": "Réduire les dossiers par défaut dans l'arbre"
   }
 }

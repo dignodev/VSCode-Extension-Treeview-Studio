@@ -76,5 +76,13 @@
     "de": "Alemán",
     "zh": "Chino",
     "ja": "Japonés"
+  },
+  "config": {
+    "fontFamily": "Familia de fuente para la vista de árbol",
+    "fontSize": "Tamaño de fuente para la vista de árbol",
+    "showIcons": "Mostrar iconos de tipo de archivo en el árbol",
+    "includeHidden": "Incluir archivos y carpetas ocultos (que comienzan con .)",
+    "maxDepth": "Profundidad máxima para recorrer en el árbol de directorios",
+    "collapseEntries": "Contraer carpetas por defecto en el árbol"
   }
 }

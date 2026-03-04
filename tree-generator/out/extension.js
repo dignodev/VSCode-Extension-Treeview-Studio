@@ -619,7 +619,9 @@ function getFileIconSVG(fileName, webview, context) {
         '.heic': 'file-image',
         '.raw': 'file-image', // Camera raw formats
         '.tiff': 'file-image',
-        '.tif': 'file-image'
+        '.tif': 'file-image',
+        // Default icon for unknown file types
+        'default': 'default-file'
     };
     // Mapeo de colores por tipo de archivo
     const colorMap = {
@@ -704,7 +706,7 @@ function getFileIconSVG(fileName, webview, context) {
         iconColor = colorMap[baseName === 'tsconfig.json' ? 'settings' : 'env'];
     }
     else {
-        svgName = svgMap[ext];
+        svgName = svgMap[ext] || svgMap['default'];
         iconColor = colorMap[ext] || colorMap['default'];
     }
     if (svgName) {

@@ -1682,6 +1682,36 @@ function getWebviewContent(
             vscode.postMessage({ command: 'changeLanguage' });
         }
         
+        // Función para obtener emoji basado en extensión de archivo
+        function getEmojiForFile(fileName) {
+            const ext = fileName.split('.').pop()?.toLowerCase() || '';
+            const iconMap = {
+                'js': '🟨', 'jsx': '🟨', 'ts': '🔷', 'tsx': '🔷',
+                'py': '🐍', 'java': '☕', 'c': '🔵', 'cpp': '🔵', 'h': '🔵',
+                'cs': '🟣', 'go': '🔹', 'rs': '🦀', 'rb': '💎', 'php': '🐘',
+                'html': '🌐', 'htm': '🌐', 'css': '🎨', 'scss': '🎨', 'less': '🎨',
+                'json': '📋', 'xml': '📰', 'yaml': '📄', 'yml': '📄',
+                'md': '📝', 'txt': '📄', 'pdf': '📕',
+                'png': '🖼️', 'jpg': '🖼️', 'jpeg': '🖼️', 'gif': '🖼️', 'svg': '🖼️', 'ico': '🖼️',
+                'mp3': '🎵', 'wav': '🎵', 'ogg': '🎵', 'mp4': '🎬', 'avi': '🎬', 'mkv': '🎬',
+                'zip': '📦', 'rar': '📦', 'tar': '📦', 'gz': '📦',
+                'exe': '⚙️', 'dll': '⚙️', 'so': '⚙️', 'dylib': '⚙️',
+                'sql': '🗃️', 'db': '🗃️', 'sqlite': '🗃️',
+                'sh': '💻', 'bash': '💻', 'zsh': '💻', 'bat': '💻', 'ps1': '💻',
+                'dockerfile': '🐳', 'docker': '🐳',
+                'gitignore': '📂', 'env': '🔒', 'git': '📂'
+            };
+            const baseName = fileName.toLowerCase();
+            if (baseName === 'dockerfile') return '🐳';
+            if (baseName === 'makefile') return '⚙️';
+            if (baseName === '.gitignore') return '📂';
+            if (baseName === '.env') return '🔒';
+            if (baseName === 'package.json') return '📦';
+            if (baseName === 'package-lock.json') return '🔒';
+            if (baseName === 'tsconfig.json') return '⚙️';
+            return iconMap[ext] || '📄';
+        }
+        
         // Función para generar texto del árbol basado en el estado actual del DOM
         function generateTreeTextFromDOM() {
             const rootElement = document.querySelector('.tree-item.root');
@@ -1722,7 +1752,7 @@ function getWebviewContent(
                     if (treeLine) {
                         const prefixSpan = treeLine.querySelector('.prefix')?.textContent || '';
                         const connector = treeLine.querySelector('.connector')?.textContent || '';
-                        const icon = treeLine.querySelector('.folder-icon')?.textContent || '';
+                        const icon = currentShowIcons ? (treeLine.querySelector('.folder-icon img') ? '📁' : (treeLine.querySelector('.folder-icon')?.textContent || '📁')) : '';
                         const name = treeLine.querySelector('.folder-name')?.textContent || '';
                         
                         result += prefixSpan + connector + icon + name + '\\n';
@@ -1741,7 +1771,17 @@ function getWebviewContent(
                     if (treeLine) {
                         const prefixSpan = treeLine.querySelector('.prefix')?.textContent || '';
                         const connector = treeLine.querySelector('.connector')?.textContent || '';
-                        const icon = treeLine.querySelector('.file-icon')?.textContent || '';
+                        // Check if SVG icon is present, fallback to emoji based on file extension
+                        const iconImg = treeLine.querySelector('.file-icon img');
+                        const fileNameForIcon = treeLine.querySelector('.file-name')?.textContent || '';
+                        let icon = '';
+                        if (currentShowIcons) {
+                            if (iconImg) {
+                                icon = getEmojiForFile(fileNameForIcon);
+                            } else {
+                                icon = treeLine.querySelector('.file-icon')?.textContent || getEmojiForFile(fileNameForIcon);
+                            }
+                        }
                         const name = treeLine.querySelector('.file-name')?.textContent || '';
                         
                         result += prefixSpan + connector + icon + name + '\\n';

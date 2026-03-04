@@ -1,14 +1,14 @@
 # VSCode Tree Generator 🌳
 
-English  | [日本語](./README.jp.md) | [Spanish](./README.es.md)
+English | [Español](./README.es.md) | [日本語](./README.ja.md)
 
-[![VS Code](https://img.shields.io/badge/VS%20Code-%235586A4?style=flat&logo=visual-studio-code)](https://code.visualstudio.com/) [![Version](https://img.shields.io/badge/Version-0.1.0-blue)](https://marketplace.visualstudio.com/) [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE) [![Node.js](https://img.shields.io/badge/Node.js-%23339933?style=flat&logo=node.js)](https://nodejs.org/)
-
+[![VS Code](https://img.shields.io/badge/VS%20Code-%235586A4?style=flat&logo=visual-studio-code)](https://code.visualstudio.com/) [![Version](https://img.shields.io/badge/Version-0.3.0-blue)](https://marketplace.visualstudio.com/) [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE) [![Node.js](https://img.shields.io/badge/Node.js-%23339933?style=flat&logo=node.js)](https://nodejs.org/)
 
 A Visual Studio Code extension that generates a directory tree visualization of your project. Perfect for documentation, sharing project structure, or understanding codebase organization.
 
 ## Features
 
+### Core Features
 - **Directory Tree Generation**: Creates a visual tree structure of any folder in your project
 - **Interactive Prompts**: Ask whether to include hidden files (`.git`, `node_modules`, etc.)
 - **Configurable Depth**: Set the maximum depth for the tree visualization
@@ -17,47 +17,28 @@ A Visual Studio Code extension that generates a directory tree visualization of 
 - **Visual Tree Format**: Uses standard tree notation (`├──`, `└──`, `│`) for clear visualization
 - **Support the Developer**: Option to donate and support the project development
 
+### New in Version 0.3.0
 
-## Características 
+#### Performance & Caching
+- **Smart Cache System**: Automatically caches generated trees for faster access
+- **Auto-Invalidation**: Cache automatically clears when files change
+- **Manual Cache Clear**: Command to clear cache when needed
 
-- **Interfaz visual interactiva**: El árbol se muestra en una WebView con iconos
-- **Opciones en tiempo real**: Cambia la configuración sin regenerar el árbol
-- **Mostrar/ocultar iconos**: Personaliza la visualización
-- **Exportar a archivo**: Guarda el árbol como archivo de texto
-- **Copiar al portapapeles**: Copia el árbol rápidamente
-- **Filtrado inteligente**: Opción para incluir o excluir archivos ocultos
-- **Límite de profundidad**: Controla qué tan profundo quieres explorar
+#### Multilingual Support
+- **6 Languages Supported**: English, Spanish, French, German, Chinese, Japanese
+- **Language Switching**: Change language via Command Palette
+- **Auto-Detection**: Automatically detects your VS Code language
 
-## Cómo usar 
+#### Enhanced UI/UX
+- **Real-time Options Panel**: Change settings without regenerating the tree
+- **Search & Filter**: Find files and folders quickly
+- **Expand/Collapse All**: Navigate large trees easily
+- **Customizable Fonts**: Choose your preferred font family and size
+- **Collapsible Entries**: Start with folders collapsed by default
 
-1. Haz clic derecho en cualquier carpeta del explorador
-2. Selecciona "Generar Árbol de Directorios"
-3. Elige si quieres incluir archivos ocultos
-4. (Opcional) Establece una profundidad máxima
-5. ¡Listo! El árbol se abrirá en una nueva pestaña
-
-## Interfaz 
-
-La nueva interfaz incluye:
-- **Botón de opciones** para cambiar configuración
-- **Botón de iconos** para mostrar/ocultar iconos
-- **Botón de copiar** para copiar al portapapeles
-- **Botón de exportar** para guardar como archivo
-- **Estadísticas** de la ruta actual
-
-## Iconos por tipo de archivo 🖼️
-
-- 📁 Carpetas
-- 🔷 Archivos TypeScript (.ts)
-- 🟨 Archivos JavaScript (.js)
-- 📋 Archivos JSON (.json)
-- 🌐 Archivos HTML (.html)
-- 🎨 Archivos CSS (.css)
-- 📝 Archivos Markdown (.md)
-- 📄 Archivos de texto (.txt)
-- 🔒 Archivos de configuración (.gitignore)
-- 📦 Paquetes (.vsix)
-- 🖼️ Imágenes (.png, .jpg, .svg, .ico)
+#### Export & Share
+- **Copy to Clipboard**: Copy the entire tree or selected portions
+- **Export to File**: Save tree as a text file
 
 ## Installation
 
@@ -99,13 +80,13 @@ To create and install the extension package:
    - Go to Extensions (`Ctrl+Shift+X` or `Cmd+Shift+X` on Mac)
    - Click the `...` menu in the top right
    - Select "Install from VSIX..."
-   - Navigate to `tree-generator/tree-generator-0.1.0.vsix`
+   - Navigate to `tree-generator/tree-generator-0.3.0.vsix`
 
 ### Alternative Installation
 
 You can also install directly from the command line:
 ```bash
-code --install-extension tree-generator/tree-generator-0.1.0.vsix
+code --install-extension tree-generator/tree-generator-0.3.0.vsix
 ```
 
 ## Usage
@@ -113,21 +94,90 @@ code --install-extension tree-generator/tree-generator-0.1.0.vsix
 ### Method 1: Context Menu
 
 1. Right-click on any folder in the VS Code Explorer
-2. Select **"Generar Árbol de Directorios"** from the context menu
+2. Select **"Generate Directory Tree"** from the context menu
 3. Follow the prompts:
-   - Choose whether to include hidden files (Sí/No)
+   - Choose whether to include hidden files (Yes/No)
    - Enter the maximum depth (leave empty for unlimited)
 
 ### Method 2: Command Palette
 
 1. Press `Ctrl+Shift+P` (or `Cmd+Shift+P` on Mac)
-2. Type "Generar Árbol de Directorios"
+2. Type "Generate Directory Tree" or "tree-generator"
 3. Press Enter
 4. Follow the same prompts as above
 
-### Method 3: Workspace Root
+### Method 3: Language Switching
 
-If no folder is selected, the extension will generate a tree of the entire workspace.
+1. Press `Ctrl+Shift+P` (or `Cmd+Shift+P` on Mac)
+2. Type "Change Language"
+3. Select your preferred language
+4. Reload VS Code when prompted
+
+### Method 4: Clear Cache
+
+1. Press `Ctrl+Shift+P`
+2. Type "Clear Tree Cache"
+3. Press Enter
+
+## WebView Interface
+
+The tree is displayed in an interactive WebView with:
+
+- **Search Bar**: Filter files and folders in real-time
+- **Options Panel**: 
+  - Show/Hide hidden files
+  - Adjust maximum depth
+  - Show/Hide icons
+  - Collapse folders by default
+- **Expand All**: Expand all folders
+- **Collapse All** (⇅): Collapse all folders
+- **Copy**: Copy tree to clipboard
+- **Export**: Save tree to a file
+- **Statistics**: Shows path, file count, line count, and size
+
+## Supported File Types & Icons 
+
+The extension includes icons for 50+ file types including:
+
+| Category | Extensions |
+|----------|------------|
+| **Web** | `.html`, `.css`, `.scss`, `.sass`, `.less` |
+| **JavaScript/TypeScript** | `.js`, `.jsx`, `.ts`, `.tsx`, `.mjs`, `.cjs` |
+| **Frameworks** | React, Vue, Angular, Svelte, Next.js, Node.js |
+| **Data** | `.json`, `.xml`, `.yaml`, `.yml`, `.toml`, `.ini` |
+| **Documents** | `.md`, `.txt`, `.pdf` |
+| **Images** | `.png`, `.jpg`, `.jpeg`, `.svg`, `.ico`, `.gif`, `.webp` |
+| **Video/Audio** | `.mp4`, `.mp3`, `.wav`, `.ogg` |
+| **Database** | `.sql`, `.db`, `.sqlite`, PostgreSQL, MongoDB |
+| **DevOps** | Docker, Kubernetes, Terraform |
+| **Programming** | Python, Java, C#, Ruby, Go, Rust, Swift, Kotlin, Scala, PHP |
+| **Config** | `.gitignore`, `.env`, `.npmrc` |
+
+## Configuration
+
+You can customize the extension via VS Code Settings:
+
+```json
+{
+  "tree-generator.fontFamily": "Consolas, Monaco, Courier New, monospace",
+  "tree-generator.fontSize": 13,
+  "tree-generator.showIcons": true,
+  "tree-generator.includeHidden": false,
+  "tree-generator.maxDepth": 10,
+  "tree-generator.collapseEntries": false
+}
+```
+
+### Settings Options
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `fontFamily` | string | Consolas, Monaco, Courier New, monospace | Font family for the tree |
+| `fontSize` | number | 13 | Font size for the tree |
+| `showIcons` | boolean | true | Show file type icons |
+| `includeHidden` | boolean | false | Include hidden files (.git, node_modules) |
+| `maxDepth` | number | 10 | Maximum directory depth |
+| `collapseEntries` | boolean | false | Start with folders collapsed |
 
 ## Example Output
 
@@ -146,7 +196,7 @@ mi-proyecto/
 │   └── index.ts
 ├── public/
 │   ├── index.html
-│   └── favicon.ico
+│   └── favico.ico
 ├── package.json
 ├── tsconfig.json
 └── README.md
@@ -184,12 +234,23 @@ npm run vscode:prepublish
 VSCode-Tree-Github/
 ├── tree-generator/
 │   ├── src/
-│   │   └── extension.ts      # Main extension source code
-│   ├── out/                  # Compiled JavaScript
-│   ├── package.json          # Extension manifest
-│   └── tsconfig.json         # TypeScript configuration
-├── LICENSE                   # MIT License
-└── README.md                # This file
+│   │   ├── extension.ts      # Main extension source code
+│   │   └── i18n.ts          # Internationalization service
+│   ├── locales/             # Translation files
+│   │   ├── en/translation.json
+│   │   ├── es/translation.json
+│   │   ├── fr/translation.json
+│   │   ├── de/translation.json
+│   │   ├── zh/translation.json
+│   │   └── ja/translation.json
+│   ├── resources/
+│   │   ├── fonts/           # Custom fonts
+│   │   └── icons/           # File type icons
+│   ├── out/                 # Compiled JavaScript
+│   ├── package.json         # Extension manifest
+│   └── tsconfig.json        # TypeScript configuration
+├── LICENSE                  # MIT License
+└── README.md               # This file
 ```
 
 ## Contributing

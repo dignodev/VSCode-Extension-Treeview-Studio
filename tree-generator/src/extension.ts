@@ -2287,7 +2287,7 @@ function getWebviewContent(
             // Add real-time search listener
             const searchInput = document.getElementById('searchInput');
             if (searchInput) {
-                searchInput.addEventListener('input', debounce(filterTree, 300));
+                searchInput.addEventListener('input', debounce(filterTree, 800));
                 searchInput.addEventListener('keydown', function(e) {
                     if (e.key === 'Escape') {
                         clearSearch();

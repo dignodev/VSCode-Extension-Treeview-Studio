@@ -1,6 +1,6 @@
 {
     "commands.generateTree": "ディレクトリツリーを生成",
-    "commands.donate": "Tree Generatorをサポート ☕",
+    "commands.donate": "TreeView Studioをサポート ☕",
     "commands.language": "言語を変更",
     "config.fontFamily": "ディレクトリツリーのフォントファミリー",
     "config.fontSize": "ツリーのフォントサイズ",

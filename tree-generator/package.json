@@ -4,6 +4,7 @@
   "description": "Generates a directory tree visualization of your project in an interactive visual interface",
   "version": "0.3.0",
   "publisher": "dignodev",
+  "icon": "../UI/Icons/icon-128x128.png",
   "keywords": ["tree", "directory", "folder", "structure", "visualization", "project-tree", "file-tree"],
   "repository": {
     "type": "git",

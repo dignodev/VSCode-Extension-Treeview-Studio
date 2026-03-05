@@ -1,6 +1,6 @@
 {
     "commands.generateTree": "Generate Directory Tree",
-    "commands.donate": "Support Tree Generator ☕",
+    "commands.donate": "Support TreeView Studio ☕",
     "commands.language": "Change Language",
     "config.fontFamily": "Font family for the directory tree",
     "config.fontSize": "Font size for the tree",

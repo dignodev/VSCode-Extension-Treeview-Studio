@@ -7,4 +7,3 @@ tsconfig.json
 !.vscode/tasks.json
 **/*.map
 **/*.ts
-out/

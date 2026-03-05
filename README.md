@@ -6,7 +6,7 @@
 
 English | [Español](./README.es.md) | [日本語](./README.ja.md)
 
-[![VS Code](https://img.shields.io/badge/VS%20Code-%235586A4?style=flat&logo=visual-studio-code)](https://code.visualstudio.com/) [![Version](https://img.shields.io/badge/Version-0.3.1-blue)](https://marketplace.visualstudio.com/) [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE) [![Node.js](https://img.shields.io/badge/Node.js-%23339933?style=flat&logo=node.js)](https://nodejs.org/)
+[![VS Code](https://img.shields.io/badge/VS%20Code-%235586A4?style=flat&logo=visual-studio-code)](https://code.visualstudio.com/) [![Version](https://img.shields.io/badge/Version-0.3.2-blue)](https://marketplace.visualstudio.com/) [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE) [![Node.js](https://img.shields.io/badge/Node.js-%23339933?style=flat&logo=node.js)](https://nodejs.org/)
 
 
 <a href="https://www.buymeacoffee.com/dignodev" target="_blank"><img src="UI/Media/Buymeacoffee-button.png" alt="Buy Me A Coffee" style="height: 48px !important;box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;" ></a>
@@ -34,7 +34,7 @@ A Visual Studio Code extension that generates a directory tree visualization of 
 - **Visual Tree Format**: Uses standard tree notation (`├──`, `└──`, `│`) for clear visualization
 - **Support the Developer**: Option to donate and support the project development
 
-### New in Version 0.3.1
+### New in Version 0.3.2
 
 #### Performance & Caching
 - **Smart Cache System**: Automatically caches generated trees for faster access
@@ -97,13 +97,13 @@ To create and install the extension package:
    - Go to Extensions (`Ctrl+Shift+X` or `Cmd+Shift+X` on Mac)
    - Click the `...` menu in the top right
    - Select "Install from VSIX..."
-   - Navigate to `tree-generator/tree-generator-0.3.1.vsix`
+   - Navigate to `tree-generator/tree-generator-0.3.2.vsix`
 
 ### Alternative Installation
 
 You can also install directly from the command line:
 ```bash
-code --install-extension tree-generator/tree-generator-0.3.1.vsix
+code --install-extension tree-generator/tree-generator-0.3.2.vsix
 ```
 
 ## Usage

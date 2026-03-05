@@ -2,7 +2,7 @@
   "name": "treeview-studio",
   "displayName": "TreeView Studio",
   "description": "Generates a directory tree visualization of your project in an interactive visual interface",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "publisher": "dignodev",
   "icon": "resources/icon-128x128.png",
   "keywords": ["tree", "directory", "folder", "structure", "visualization", "project-tree", "file-tree"],

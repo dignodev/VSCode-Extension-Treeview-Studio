@@ -8,8 +8,9 @@
 
 </div>
 
-<a href="https://www.buymeacoffee.com/dignodev" target="_blank"><img src="https://raw.githubusercontent.com/dignodev/VSCode-Extension-Tree/develop/UI/Media/Buymeacoffee-button.png" alt="Buy Me A Coffee" style="height: 41px !important;width: 145px !important;box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;" ></a>
-
+<div style="height: 41px !important;width: 145px !important;margin-bottom:20px;">
+<a href="https://www.buymeacoffee.com/dignodev" style="height: 11px !important;" target="_blank"><img src="https://raw.githubusercontent.com/dignodev/VSCode-Extension-Tree/develop/UI/Media/Buymeacoffee-button.png" alt="Buy Me A Coffee" style="height: 41px !important;width: 145px !important;box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;" ></a>
+</div>
 
 A Visual Studio Code extension that generates a beautiful directory tree visualization of your project. Perfect for documentation, sharing project structure, or understanding codebase organization.
 

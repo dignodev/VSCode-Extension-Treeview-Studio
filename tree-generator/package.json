@@ -1,16 +1,16 @@
 {
-  "name": "tree-generator",
-  "displayName": "Tree Generator",
-  "description": "Genera un árbol de directorios del proyecto en una interfaz visual interactiva",
+  "name": "treeview-studio",
+  "displayName": "TreeView Studio",
+  "description": "Generates a directory tree visualization of your project in an interactive visual interface",
   "version": "0.3.0",
   "publisher": "dignodev",
   "keywords": ["tree", "directory", "folder", "structure", "visualization", "project-tree", "file-tree"],
   "repository": {
     "type": "git",
-    "url": "https://github.com/dignodev/vscode-tree-generator.git"
+    "url": "https://github.com/dignodev/treeview-studio.git"
   },
   "bugs": {
-    "url": "https://github.com/dignodev/vscode-tree-generator/issues"
+    "url": "https://github.com/dignodev/treeview-studio/issues"
   },
   "engines": {
     "vscode": "^1.85.0"
@@ -44,25 +44,25 @@
       {
         "command": "tree-generator.generateTree",
         "title": "%commands.generateTree%",
-        "category": "Tree Generator",
+        "category": "TreeView Studio",
         "icon": "resources/icons/taskbar-icons/save-floppy.svg"
       },
       {
         "command": "tree-generator.donate",
         "title": "%commands.donate%",
-        "category": "Tree Generator",
+        "category": "TreeView Studio",
         "icon": "resources/icons/taskbar-icons/copy-check.svg"
       },
       {
         "command": "tree-generator.changeLanguage",
         "title": "%commands.language%",
-        "category": "Tree Generator",
+        "category": "TreeView Studio",
         "icon": "resources/icons/taskbar-icons/language-square.svg"
       },
       {
         "command": "tree-generator.clearCache",
         "title": "Clear Tree Cache",
-        "category": "Tree Generator",
+        "category": "TreeView Studio",
         "icon": "resources/icons/taskbar-icons/hide-eye.svg"
       }
     ],
@@ -76,7 +76,7 @@
       ]
     },
     "configuration": {
-      "title": "Tree Generator",
+      "title": "TreeView Studio",
       "properties": {
         "tree-generator.fontFamily": {
           "type": "string",

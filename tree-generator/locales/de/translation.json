@@ -1,11 +1,11 @@
 {
   "extension": {
-    "name": "Tree Generator",
+    "name": "TreeView Studio",
     "description": "Erzeugt einen Verzeichnisbaum des Projekts in einer interaktiven visuellen Oberfläche"
   },
   "commands": {
     "generateTree": "Verzeichnisbaum generieren",
-    "donate": "Tree Generator unterstützen ☕",
+    "donate": "TreeView Studio unterstützen ☕",
     "language": "Sprache ändern"
   },
   "messages": {
@@ -16,7 +16,7 @@
     "selectionCopied": "Auswahl in die Zwischenablage kopiert",
     "noSelection": "Kein Text ausgewählt",
     "saved": "Baum gespeichert unter {{path}}",
-    "donationPrompt": "Gefällt dir Tree Generator? Wenn du die Entwicklung unterstützen möchtest, lad mich auf einen Kaffee ein ☕",
+    "donationPrompt": "Gefällt dir TreeView Studio? Wenn du die Entwicklung unterstützen möchtest, lad mich auf einen Kaffee ein ☕",
     "donateNow": "Jetzt unterstützen",
     "later": "Später",
     "languageChanged": "Sprache erfolgreich geändert",

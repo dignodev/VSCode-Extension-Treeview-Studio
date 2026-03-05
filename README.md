@@ -1,4 +1,4 @@
-# VSCode Tree Generator 🌳 
+# TreeView Studio 🌳 
 
 <div align="center">
 <img src="UI/Icons/icon.png" alt="Buy Me A Coffee" style="height: 200px !important;" >
@@ -63,8 +63,8 @@ A Visual Studio Code extension that generates a directory tree visualization of 
 
 1. Clone this repository:
    ```bash
-   git clone https://github.com/yourusername/VSCode-Tree-Github.git
-   cd VSCode-Tree-Github/tree-generator
+   git clone https://github.com/dignodev/treeview-studio.git
+   cd treeview-studio/tree-generator
    ```
 
 2. Install dependencies:

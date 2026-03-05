@@ -1,4 +1,4 @@
-# VSCode Tree Generator 🌳
+# TreeView Studio 🌳
 
 [English](./README.md) | [Español](./README.es.md) | 日本語
 
@@ -46,8 +46,8 @@ Visual Studio Codeの拡張機能で、プロジェクト全体のディレク�
 
 1. このリポジトリをクローン:
    ```bash
-   git clone https://github.com/yourusername/VSCode-Tree-Github.git
-   cd VSCode-Tree-Github/tree-generator
+   git clone https://github.com/dignodev/treeview-studio.git
+   cd treeview-studio/tree-generator
    ```
 
 2. 依存関係をインストール:

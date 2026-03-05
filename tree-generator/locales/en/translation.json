@@ -1,11 +1,11 @@
 {
   "extension": {
-    "name": "Tree Generator",
+    "name": "TreeView Studio",
     "description": "Generates a directory tree of the project in an interactive visual interface"
   },
   "commands": {
     "generateTree": "Generate Directory Tree",
-    "donate": "Support Tree Generator ☕",
+    "donate": "Support TreeView Studio ☕",
     "language": "Change Language"
   },
   "messages": {
@@ -16,7 +16,7 @@
     "selectionCopied": "Selection copied to clipboard",
     "noSelection": "No text selected",
     "saved": "Tree saved in {{path}}",
-    "donationPrompt": "Enjoying Tree Generator? If you want to support development, consider buying me a coffee ☕",
+    "donationPrompt": "Enjoying TreeView Studio? If you want to support development, consider buying me a coffee ☕",
     "donateNow": "Support now",
     "later": "Later",
     "languageChanged": "Language changed successfully",

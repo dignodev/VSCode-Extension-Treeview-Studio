@@ -1,6 +1,6 @@
-# Contributing to VSCode Tree Generator
+# Contributing to TreeView Studio
 
-Thank you for your interest in contributing to Tree Generator!
+Thank you for your interest in contributing to TreeView Studio!
 
 ## How to Contribute
 
@@ -34,10 +34,10 @@ Thank you for your interest in contributing to Tree Generator!
 
 ```bash
 # Clone the repository
-git clone https://github.com/dignodev/vscode-tree-generator.git
+git clone https://github.com/dignodev/treeview-studio.git
 
 # Navigate to the project
-cd vscode-tree-generator/tree-generator
+cd treeview-studio/tree-generator
 
 # Install dependencies
 npm install

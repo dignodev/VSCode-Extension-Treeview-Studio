@@ -1,11 +1,11 @@
 {
   "extension": {
-    "name": "Tree Generator",
+    "name": "TreeView Studio",
     "description": "在交互式视觉界面中生成项目的目录树"
   },
   "commands": {
     "generateTree": "生成目录树",
-    "donate": "支持 Tree Generator ☕",
+    "donate": "支持 TreeView Studio ☕",
     "language": "更改语言"
   },
   "messages": {
@@ -16,7 +16,7 @@
     "selectionCopied": "选择已复制到剪贴板",
     "noSelection": "未选择文本",
     "saved": "树已保存到 {{path}}",
-    "donationPrompt": "喜欢 Tree Generator 吗？如果你想支持开发，请我喝杯咖啡 ☕",
+    "donationPrompt": "喜欢 TreeView Studio 吗？如果您想支持开发，请我喝杯咖啡 ☕",
     "donateNow": "立即支持",
     "later": "稍后",
     "languageChanged": "语言已成功更改",

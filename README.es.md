@@ -1,4 +1,4 @@
-# VSCode Tree Generator 🌳
+# TreeView Studio 🌳
 
 [English](./README.md) | Español | [日本語](./README.ja.md)
 
@@ -46,8 +46,8 @@ Una extensión de Visual Studio Code que genera una visualización de árbol de 
 
 1. Clona este repositorio:
    ```bash
-   git clone https://github.com/yourusername/VSCode-Tree-Github.git
-   cd VSCode-Tree-Github/tree-generator
+   git clone https://github.com/dignodev/treeview-studio.git
+   cd treeview-studio/tree-generator
    ```
 
 2. Instala las dependencias:

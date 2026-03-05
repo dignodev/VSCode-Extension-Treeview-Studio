@@ -1,11 +1,11 @@
 {
   "extension": {
-    "name": "Tree Generator",
+    "name": "TreeView Studio",
     "description": "Génère un arbre de répertoires du projet dans une interface visuelle interactive"
   },
   "commands": {
     "generateTree": "Générer l'Arbre de Répertoires",
-    "donate": "Soutenir Tree Generator ☕",
+    "donate": "Soutenir TreeView Studio ☕",
     "language": "Changer de Langue"
   },
   "messages": {
@@ -16,7 +16,7 @@
     "selectionCopied": "Sélection copiée dans le presse-papiers",
     "noSelection": "Aucun texte sélectionné",
     "saved": "Arbre sauvegardé dans {{path}}",
-    "donationPrompt": "Vous aimez Tree Generator? Si vous voulez soutenir le développement, offrez-moi un café ☕",
+    "donationPrompt": "Vous aimez TreeView Studio? Si vous voulez soutenir le développement, offrez-moi un café ☕",
     "donateNow": "Soutenir maintenant",
     "later": "Plus tard",
     "languageChanged": "Langue changée avec succès",

@@ -1,11 +1,11 @@
 {
   "extension": {
-    "name": "Tree Generator",
+    "name": "TreeView Studio",
     "description": "インタラクティブなビジュアルインターフェースでプロジェクトのディレクトリツリーを生成します"
   },
   "commands": {
     "generateTree": "ディレクトリツリーを生成",
-    "donate": "Tree Generatorを支援 ☕",
+    "donate": "TreeView Studioを支援 ☕",
     "language": "言語を変更"
   },
   "messages": {
@@ -16,7 +16,7 @@
     "selectionCopied": "選択範囲をクリップボードにコピーしました",
     "noSelection": "テキストが選択されていません",
     "saved": "ツリーを {{path}} に保存しました",
-    "donationPrompt": "Tree Generatorをお楽しみですか？開発を支援していただけるなら、コーヒーをご馳走してください ☕",
+    "donationPrompt": "TreeView Studioをお楽しみください！開発を支援したい場合は、コーヒーをおごってください ☕",
     "donateNow": "今すぐ支援",
     "later": "後で",
     "languageChanged": "言語が正常に変更されました",

@@ -2282,12 +2282,17 @@ function getWebviewContent(
         
         // Initialize values
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('[Search] DOMContentLoaded fired');
             updateIconsButton();
             
             // Add real-time search listener
-            const searchInput = document.getElementById('searchInput');
+            var searchInput = document.getElementById('searchInput');
+            console.log('[Search] searchInput element:', searchInput);
             if (searchInput) {
-                searchInput.addEventListener('input', debounce(filterTree, 800));
+                searchInput.addEventListener('input', function(e) {
+                    console.log('[Search] Input event triggered, value:', e.target.value);
+                    filterTree();
+                });
                 searchInput.addEventListener('keydown', function(e) {
                     if (e.key === 'Escape') {
                         clearSearch();
@@ -2311,33 +2316,42 @@ function getWebviewContent(
         
         // Filter tree function
         function filterTree() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
-            const resultsCountEl = document.getElementById('searchResultsCount');
+            var startTime = performance.now();
+            var searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+            var resultsCountEl = document.getElementById('searchResultsCount');
             
             if (!searchTerm) {
+                console.log('[Search] Debounce disabled - immediate clear');
                 clearSearch();
                 return;
             }
             
-            let matchCount = 0;
-            const treeItems = document.querySelectorAll('.tree-item');
+            var matchCount = 0;
+            var treeItems = document.querySelectorAll('.tree-item');
+            console.log('[Search] Processing ' + treeItems.length + ' items');
+            
+            // Clear previous search state first
+            treeItems.forEach(function(item) {
+                item.classList.remove('search-match', 'search-hidden');
+            });
             
             // First pass: mark all matching items and expand parents
-            treeItems.forEach(item => {
-                const nameEl = item.querySelector('.folder-name, .file-name, .root-name');
+            treeItems.forEach(function(item) {
+                var nameEl = item.querySelector('.folder-name, .file-name, .root-name');
                 if (nameEl) {
-                    const name = nameEl.textContent.toLowerCase();
+                    var name = nameEl.textContent.toLowerCase();
                     if (name.includes(searchTerm)) {
                         item.classList.remove('search-hidden');
                         item.classList.add('search-match');
                         matchCount++;
+                        console.log('[Search] Match found:', nameEl.textContent);
                         
                         // Expand parent folder if collapsed
-                        let parent = item.parentElement;
+                        var parent = item.parentElement;
                         while (parent) {
                             if (parent.classList.contains('folder-content')) {
                                 parent.classList.remove('collapsed');
-                                const header = parent.previousElementSibling;
+                                var header = parent.previousElementSibling;
                                 if (header && header.classList.contains('folder-header')) {
                                     header.classList.remove('collapsed');
                                 }
@@ -2349,24 +2363,35 @@ function getWebviewContent(
             });
             
             // Second pass: hide non-matching items (but keep parents with matches visible)
-            treeItems.forEach(item => {
+            var hiddenCount = 0;
+            var visibleCount = 0;
+            treeItems.forEach(function(item) {
                 if (!item.classList.contains('search-match')) {
                     // Check if this item has any matching descendants
-                    const hasMatchingDescendants = item.querySelector('.search-match');
+                    var hasMatchingDescendants = item.querySelector('.search-match');
                     if (!hasMatchingDescendants) {
                         item.classList.add('search-hidden');
+                        hiddenCount++;
                     } else {
                         // This folder has matching children, keep it visible
                         item.classList.remove('search-hidden');
+                        visibleCount++;
                     }
+                } else {
+                    item.classList.remove('search-hidden');
+                    visibleCount++;
                 }
             });
+            console.log('[Search] Hidden: ' + hiddenCount + ', Visible: ' + visibleCount);
             
             // Update results counter
-            const matchText = matchCount === 1 ? translations.searchMatch || 'match' : (translations.searchMatches || 'matches');
+            var matchText = matchCount === 1 ? translations.searchMatch || 'match' : (translations.searchMatches || 'matches');
             resultsCountEl.textContent = matchCount > 0 
                 ? matchCount + ' ' + matchText 
                 : translations.noResults || 'No results';
+            
+            var elapsed = performance.now() - startTime;
+            console.log('[Search] Completed in ' + elapsed.toFixed(2) + 'ms - ' + matchCount + ' matches');
         }
         
         // Clear search function

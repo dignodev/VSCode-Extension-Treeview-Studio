@@ -2,7 +2,7 @@
 
 <div align="left">
 
-[![VS Code](https://img.shields.io/badge/VS%20Code-%235586A4?style=flat&logo=visual-studio-code)](https://code.visualstudio.com/) [![Version](https://img.shields.io/badge/Version-0.3.2-blue)](https://marketplace.visualstudio.com/) [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
+[![VS Code](https://img.shields.io/badge/VS%20Code-%235586A4?style=flat&logo=visual-studio-code)](https://code.visualstudio.com/) [![Version](https://img.shields.io/badge/Version-0.3.0-blue)](https://marketplace.visualstudio.com/) [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 <!-- [![Installs](https://img.shields.io/visual-studio-marketplace/i/dignodev.treeview-studio)](https://marketplace.visualstudio.com/items?itemName=dignodev.treeview-studio)
 [![Rating](https://img.shields.io/visual-studio-marketplace/rating/dignodev.treeview-studio)](https://marketplace.visualstudio.com/items?itemName=dignodev.treeview-studio) -->
 
@@ -26,7 +26,7 @@ A Visual Studio Code extension that generates a beautiful directory tree visuali
 - **Configurable Depth** - Set the maximum depth for the tree visualization
 - **Hidden Files Support** - Option to include hidden files (`.git`, `node_modules`, etc.)
 
-### Version 0.3.2 Features
+### Version 0.3.0 Features
 
 
 #### Multilingual Support
